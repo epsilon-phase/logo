@@ -23,6 +23,7 @@ TEST_CASE("Turtles are interpolated","[turtles]"){
   }
 }
 TEST_CASE("Turtles are nondestructive","[turtles]"){
+  //They're just,,, so,,, peaceful
   logo::Turtle a,b,c;
   a.Location={0,0};
   c=a;

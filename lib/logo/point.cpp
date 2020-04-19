@@ -33,6 +33,7 @@ namespace logo{
     using namespace __detail;
     return Point{lerp(t,a.x,b.x),lerp(t,a.x,b.x)};
   }
+  
   bool operator==(Point a,Point b){
     using namespace __detail;
     float dx = a.x-b.x,
