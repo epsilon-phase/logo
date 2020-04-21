@@ -11,6 +11,14 @@ using namespace language;
     tu.tokens.emplace_back(tokens::Token{tokens::Number,
                                          std::string_view(start,p-start+1)});
   }
+  action keyword{
+    std::string_view sv(start,p-start+1);
+    tu.tokens.emplace_back(tokens::Token{__detail::identify_keyword(sv),sv});
+  }
+  action operator{
+    std::string_view sv(start,p-start+1);
+    tu.tokens.emplace_back(tokens::Token{__detail::identify_operator(sv),sv});
+  }
   ws = [ \t]+;
   comment = ('#'|'//')[^\n]+ '\n';
   equals = '=';
@@ -26,12 +34,13 @@ using namespace language;
            | [wW]'hile'
            | [fF]'or'
            | [iI]'f'
-           | [Ee]'lse';
+           | [Ee]'lse' 
+           | [rR]'eturn' %keyword;
   lparam = '(';
   rparam = ')';
   semi = ';';
   comma = ',';
-  operator = ('++'|'--'|'+'|'-'|'/'|'*'|'^'|'||'|'&&');
+  operator = ('++'|'--'|'+'|'-'|'/'|'*'|'^'|'||'|'&&') %operator;
   identifier = [a-zA-Z_\$][a-zA-Z_0-9\$]+;
   main := ((identifier | number | keyword
         | operator | lparam | rparam| semi | comma) >start

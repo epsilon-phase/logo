@@ -11,6 +11,7 @@ namespace logo {
         If,
         Else,
         EndIf,
+        Variable,
         Identifier,
         While,
         Do,
