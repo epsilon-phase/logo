@@ -1,1 +1,3 @@
 build
+# Ignore the generated file
+lib/logo/language/lexer/lexer2.cpp
