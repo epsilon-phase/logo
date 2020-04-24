@@ -18,7 +18,7 @@ RAGEL_TARGET(logo2 ${CMAKE_CURRENT_SOURCE_DIR}/lib/logo/language/lexer/lexer2.rl
              ${CMAKE_SOURCE_DIR}/lib/logo/language/lexer/lexer2.cpp)
 add_library(logo STATIC ${RAGEL_logo2_OUTPUTS})
 add_executable(logoaway)
-target_include_directories(logo PRIVATE ${CMAKE_SOURCE_DIR}/extern/SFML/include)
+target_include_directories(logoaway PRIVATE ${CMAKE_SOURCE_DIR}/extern/SFML/include)
 if(BUILD_LOGO_DOCS)
   CMAKE_DEPENDENT_OPTION(BUILD_LATEX_DOCS "Build latex output" OFF
                          "BUILD_LOGO_DOCS" off)

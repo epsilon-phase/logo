@@ -6,7 +6,7 @@ namespace logo {
   struct Turtle {
     float Angle;
     Point Location = Point{0.0f, 0.0f};
-    bool pen_down;
+    bool pen_down = true;
     float width = 1.0f;
     Color color = Color::Black;
     /// Move the turtle length units forward
