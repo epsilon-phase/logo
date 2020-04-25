@@ -1,3 +1,8 @@
 build
+# probably just our system, but we put our fuzzer build here
+build2
 # Ignore the generated lexer file
 lib/logo/language/lexer/lexer2.cpp
+# kdevelop
+.kdev4
+logo.kdev4
