@@ -4,7 +4,11 @@
 #include <variant>
 namespace logo {
   namespace language {
+    /**
+     * Containment namespace for the token types(They're quite messy and many)
+     **/
     namespace tokens {
+      //! The types of token a token might be
       enum TokenType {
         //! indicates the start of a function declaration
         Function,
@@ -83,6 +87,8 @@ namespace logo {
        *
        * It does not own the string, so ensure that it lives only so long as
        * what it was lexed from
+       *
+       * For that purpose, consider @ref logo::language::TranslationUnit :)
        * */
       struct Token {
         //! The type of the token

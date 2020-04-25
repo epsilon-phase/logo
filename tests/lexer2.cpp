@@ -16,6 +16,7 @@ TEST_CASE("lex2 can find anything", "[lex2]") {
       lex2(tu);
     } catch (const logo::error::SyntaxException &se) {
       std::cerr << se.get_context() << std::endl;
+      throw se;
     }
     if (tu.tokens.size() != 1)
       list_tokens(tu);
@@ -42,6 +43,18 @@ TEST_CASE("lex2 can find anything", "[lex2]") {
     THEN("They are identified as numbers") {
       REQUIRE(tu.tokens[0].type == Number);
       REQUIRE(tu.tokens[1].type == Number);
+    }
+  }
+  WHEN("Multiple numbers are present and have signs mixed with operators") {
+    const std::string num = "12.3 - -13 - 5";
+    auto tu = LexString(num);
+    THEN("They are found") { REQUIRE(tu.tokens.size() == 5); }
+    THEN("They are correctly identified") {
+      REQUIRE(tu.tokens[0].type == Number);
+      REQUIRE(tu.tokens[1].type == Minus);
+      REQUIRE(tu.tokens[2].type == Number);
+      REQUIRE(tu.tokens[3].type == Minus);
+      REQUIRE(tu.tokens[4].type == Number);
     }
   }
   WHEN("There is an identifier") {
@@ -120,6 +133,7 @@ TEST_CASE("Comments", "[lex2]") {
       }
     } catch (logo::error::SyntaxException &s) {
       std::cout << s.get_context() << std::endl;
+      throw s;
     }
   }
   WHEN("The comments are multiline") {
@@ -132,7 +146,8 @@ TEST_CASE("Comments", "[lex2]") {
         REQUIRE(tu.tokens[0].type == Comment);
       }
     } catch (logo::error::SyntaxException &s) {
-      std::cout << s.get_context() << std::endl;
+      std::cout << "On line " << s.line << ": " << s.get_context() << std::endl;
+      throw s;
     }
   }
 }

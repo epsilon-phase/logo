@@ -28,6 +28,14 @@ namespace logo {
     struct TranslationUnit {
       std::string contents;
       std::vector<tokens::Token> tokens;
+      /**
+       * Convenience function equivalent to
+       * `tu.tokens.emplace_back(Token{type,std::string_view(p,l)});`
+       * @param type The type of token to add
+       * @param start The point in the string that the token starts
+       * @param length the length of the token
+       * */
+      void add_token(tokens::TokenType, const char *, size_t length);
     };
     /**
      * Lex a string, producing a translation unit :)

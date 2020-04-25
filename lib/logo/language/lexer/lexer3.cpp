@@ -12,6 +12,12 @@ using namespace logo::language::helper;
 static void toss_error(const TranslationUnit &, const lexer &, int line);
 static bool is_operator_candidate(char c);
 static bool is_whitespace(char c);
+static inline bool is_quote(char c);
+static bool is_identifier_candidate(char c, bool first);
+static inline bool is_comment_candidate(const lexer &);
+static inline bool is_number_candidate(char c);
+static void simplify_number(TranslationUnit &);
+static inline bool is_misc_candidate(char c);
 /**
  * Returns true if the lexer is at the end of the input string
  * @param lexer The lexer
@@ -28,6 +34,23 @@ void logo::language::lex2(TranslationUnit &s) {
                1};
   const char *last_pos = s.contents.c_str();
   while (lex.p != lex.pe && *lex.p != '\0') {
+    if (is_comment_candidate(lex)) {
+      lex = consume_comment(s, lex);
+    } else if (is_whitespace(*lex.p)) {
+      lex = consume_whitespace(s, lex);
+    } else if (is_operator_candidate(*lex.p)) {
+      lex = consume_operator(s, lex);
+    } else if (is_identifier_candidate(*lex.p, true)) {
+      lex = consume_identifier(s, lex);
+    } else if (is_number_candidate(*lex.p)) {
+      lex = consume_number(s, lex);
+      simplify_number(s);
+    } else if (is_quote(*lex.p)) {
+      lex = consume_string(s, lex);
+    } else if (is_misc_candidate(*lex.p)) {
+      lex = consume_misc(s, lex);
+    }
+    /*
     if (!is_at_end(lex))
       lex = consume_comment(s, lex);
     lex = consume_whitespace(s, lex);
@@ -63,7 +86,7 @@ void logo::language::lex2(TranslationUnit &s) {
       lex = consume_identifier(s, lex);
     if (!is_at_end(lex))
       lex = consume_misc(s, lex);
-
+    */
     if (last_pos != lex.p) {
       last_pos = lex.p;
     } else {
@@ -86,6 +109,12 @@ lexer helper::consume_whitespace(TranslationUnit &, const lexer &p) {
   }
   return lx;
 }
+/**
+ *
+ * @param lx The lexer state
+ * @returns DString,SString or inappropriate, given the quote detected
+ *
+ * */
 lexer_state determine_quote(const lexer &lx) {
   if (*lx.p == '"')
     return DString;
@@ -129,7 +158,8 @@ lexer helper::consume_string(TranslationUnit &tu, const lexer &l) {
   return lx;
 }
 static bool can_follow_number(const lexer &lx) {
-  return is_operator_candidate(*lx.p) || is_whitespace(*lx.p) || is_at_end(lx);
+  return is_operator_candidate(*lx.p) || is_whitespace(*lx.p) ||
+         is_misc_candidate((*lx.p)) || is_at_end(lx);
 }
 lexer helper::consume_number(TranslationUnit &tu, const lexer &lex) {
   auto is_digit = [](char c) { return c >= '0' && c <= '9'; };
@@ -187,7 +217,8 @@ static bool is_identifier_candidate(char c, bool first) {
          c == '_' || (!first && c >= '0' && c <= '9');
 }
 static bool can_follow_identifier(const lexer &l) {
-  return is_operator_candidate(*l.p) || is_whitespace(*l.p) || is_at_end(l);
+  return is_operator_candidate(*l.p) || is_whitespace(*l.p) ||
+         is_misc_candidate(*l.p) || is_at_end(l);
 }
 lexer helper::consume_identifier(TranslationUnit &tu, const lexer &lx) {
   lexer l = lx;
@@ -275,6 +306,9 @@ static TokenType which_misc(char c) {
     return Unknown;
   }
 }
+static inline bool is_misc_candidate(char c) {
+  return which_misc(c) != Unknown;
+}
 lexer helper::consume_misc(TranslationUnit &tu, const lexer &lx) {
   lexer l = lx;
   auto candidate = which_misc(*l.p);
@@ -325,4 +359,36 @@ lexer helper::consume_comment(TranslationUnit &tu, const lexer &lx) {
       l.p++;
   }
   return l;
+}
+static inline bool is_comment_candidate(const lexer &lex) {
+  return *lex.p == '#' ||
+         (*lex.p == '/' && (*(lex.p + 1) == '/' || *(lex.p + 1) == '*'));
+}
+static inline bool is_number_candidate(char c) {
+  return (c >= '0' && c <= '9') || c == '.';
+}
+static inline bool is_quote(char c) { return c == '\'' || c == '"'; }
+static void simplify_number(TranslationUnit &tu) {
+  if (tu.tokens.size() > 1 && tu.tokens.back().type == Number &&
+      tu.tokens[tu.tokens.size() - 2].type == Minus) {
+    // If the third to last token is a number or identifier,
+    // do not combine the last two tokens
+    if (tu.tokens.size() > 3) {
+      const auto &third = tu.tokens[tu.tokens.size() - 3];
+      if (third.type == Identifier || third.type == Number)
+        return;
+    }
+    // TODO make this a little  bit more... introspective For example, it
+    // should try to figure out if the third to last token might rely on
+    // that subtraction
+    auto new_num = tu.tokens.back();
+    tu.tokens.pop_back();
+    tu.tokens.pop_back();
+    new_num.content = std::string_view(new_num.content.data() - 1,
+                                       new_num.content.size() + 1);
+    tu.tokens.push_back(new_num);
+#ifdef DEBUG_LEXER
+    std::cout << "Replaced sign and number with number" << std::endl;
+#endif
+  }
 }

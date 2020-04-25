@@ -8,17 +8,34 @@ TranslationUnit logo::language::LexString(const std::string &s) {
   lex2(result);
   return result;
 }
+void TranslationUnit::add_token(tokens::TokenType t, const char *start,
+                                size_t length) {
+  tokens.emplace_back(tokens::Token{t, std::string_view(start, length)});
+}
 static bool case_insensitive_equals(const std::string &s,
                                     const std::string_view &sv) {
   auto i = s.cbegin();
   auto j = sv.cbegin();
+  // Apparently this is considered necessary for
+  // the prevention of timing attacks
+#ifdef CONSTANT_TIME_COMPARE
+  bool can_be_equal = true;
+#endif
   while (*i != 0 && *j != 0 && i != s.cend() && j != sv.cend()) {
+#ifdef CONSTANT_TIME_COMPARE
+    can_be_equal &= std::tolower(*i) != std::tolower(*j);
+#else
     if (std::tolower(*i) != std::tolower(*j))
       return false;
+#endif
     i++;
     j++;
   }
+#ifdef CONSTANT_TIME_COMPARE
+  return can_be_equal;
+#else
   return i == s.cend() && j == sv.cend();
+#endif
 }
 tokens::TokenType __detail::identify_keyword(const std::string_view &sv) {
   using namespace tokens;
