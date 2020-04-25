@@ -1,41 +1,24 @@
 #include "../../errors/syntaxexception.hpp"
+#include "./helper.hpp"
 #include "./lexer.hpp"
 #include <exception>
 #include <iostream>
 #include <sstream>
 using namespace logo::language;
 using namespace logo::language::tokens;
+using namespace logo::language::helper;
 #define TOSS_ERROR(tu, l) toss_error(tu, l, __LINE__)
-enum lexer_state {
-  Normal,
-  Ident,
-  Operator,
-  NumberS,
-  ToEnd,
-  Comment,
-  DString,
-  SString,
-  Inappropriate
-};
-struct lexer {
-  const char *p;
-  const char *pe;
-  const char *start;
-  const char *line_start;
-  lexer_state current;
-  int line;
-};
+
 static void toss_error(const TranslationUnit &, const lexer &, int line);
 static bool is_operator_candidate(char c);
 static bool is_whitespace(char c);
+/**
+ * Returns true if the lexer is at the end of the input string
+ * @param lexer The lexer
+ * @returns if it is at the end
+ * */
 static bool is_at_end(const lexer &);
-static lexer consume_whitespace(TranslationUnit &, const lexer &);
-static lexer consume_string(TranslationUnit &, const lexer &);
-static lexer consume_number(TranslationUnit &, const lexer &);
-static lexer consume_identifier(TranslationUnit &, const lexer &);
-static lexer consume_operator(TranslationUnit &, const lexer &);
-static lexer consume_misc(TranslationUnit &, const lexer &);
-static lexer consume_comment(TranslationUnit &, const lexer &);
+
 void logo::language::lex2(TranslationUnit &s) {
   lexer lex = {s.contents.c_str(),
                s.contents.c_str() + s.contents.size(),
@@ -92,7 +75,7 @@ void logo::language::lex2(TranslationUnit &s) {
 #endif
   }
 }
-static lexer consume_whitespace(TranslationUnit &, const lexer &p) {
+lexer helper::consume_whitespace(TranslationUnit &, const lexer &p) {
   lexer lx = p;
   while (is_whitespace(*lx.p) && lx.p != lx.pe) {
     if (*lx.p == '\n') {
@@ -103,7 +86,7 @@ static lexer consume_whitespace(TranslationUnit &, const lexer &p) {
   }
   return lx;
 }
-static lexer_state determine_quote(const lexer &lx) {
+lexer_state determine_quote(const lexer &lx) {
   if (*lx.p == '"')
     return DString;
   if (*lx.p == '\'')
@@ -113,7 +96,7 @@ static lexer_state determine_quote(const lexer &lx) {
 static bool can_follow_string(const lexer &l) {
   return is_whitespace(*l.p) || is_operator_candidate(*l.p) || is_at_end(l);
 }
-static lexer consume_string(TranslationUnit &tu, const lexer &l) {
+lexer helper::consume_string(TranslationUnit &tu, const lexer &l) {
   lexer lx = l;
   auto is_str = determine_quote(lx);
   if (is_str == Inappropriate)
@@ -148,7 +131,7 @@ static lexer consume_string(TranslationUnit &tu, const lexer &l) {
 static bool can_follow_number(const lexer &lx) {
   return is_operator_candidate(*lx.p) || is_whitespace(*lx.p) || is_at_end(lx);
 }
-static lexer consume_number(TranslationUnit &tu, const lexer &lex) {
+lexer helper::consume_number(TranslationUnit &tu, const lexer &lex) {
   auto is_digit = [](char c) { return c >= '0' && c <= '9'; };
   auto is_sign = [](char c) { return c == '-' || c == '+'; };
   bool found_dot = false;
@@ -206,7 +189,7 @@ static bool is_identifier_candidate(char c, bool first) {
 static bool can_follow_identifier(const lexer &l) {
   return is_operator_candidate(*l.p) || is_whitespace(*l.p) || is_at_end(l);
 }
-static lexer consume_identifier(TranslationUnit &tu, const lexer &lx) {
+lexer helper::consume_identifier(TranslationUnit &tu, const lexer &lx) {
   lexer l = lx;
   if (!is_identifier_candidate(*lx.p, true))
     return lx;
@@ -227,7 +210,7 @@ static lexer consume_identifier(TranslationUnit &tu, const lexer &lx) {
 static bool can_follow_operator(const lexer &lx) {
   return is_whitespace(*lx.p) || is_identifier_candidate(*lx.p, true);
 }
-static lexer consume_operator(TranslationUnit &tu, const lexer &lx) {
+lexer helper::consume_operator(TranslationUnit &tu, const lexer &lx) {
   auto l = lx;
   if (!is_operator_candidate(*l.p))
     return lx;
@@ -292,7 +275,7 @@ static TokenType which_misc(char c) {
     return Unknown;
   }
 }
-static lexer consume_misc(TranslationUnit &tu, const lexer &lx) {
+lexer helper::consume_misc(TranslationUnit &tu, const lexer &lx) {
   lexer l = lx;
   auto candidate = which_misc(*l.p);
   if (candidate == Unknown)
@@ -309,7 +292,7 @@ static void toss_error(const TranslationUnit &, const lexer &lex, int line) {
             << std::endl;
   throw logo::error::SyntaxException(lex.line, lex.line_start, lex.p);
 }
-static lexer consume_comment(TranslationUnit &tu, const lexer &lx) {
+lexer helper::consume_comment(TranslationUnit &tu, const lexer &lx) {
   lexer l = lx;
   bool increment_again = false;
   bool capture = false;
@@ -324,10 +307,14 @@ static lexer consume_comment(TranslationUnit &tu, const lexer &lx) {
     l.p += 2;
     l.start = l.p;
     while (!(*(l.p - 1) == '*' && *l.p == '/')) {
-      l.p++;
+      if (*l.p == '\n') {
+        l.line++;
+        l.line_start = l.p + 1;
+      }
       if (l.p == l.pe) {
         TOSS_ERROR(tu, l);
       }
+      l.p++;
     }
     capture = true;
   }

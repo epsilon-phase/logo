@@ -6,36 +6,68 @@ namespace logo {
   namespace language {
     namespace tokens {
       enum TokenType {
+        //! indicates the start of a function declaration
         Function,
+        //! indicates the end of a function declaration
         EndFunc,
+        //! indicates an if statement token
         If,
+        //! the border between the boolean expression of the if statement and
+        //! the block it encloses
         Then,
+        //! The else block token
         Else,
+        //! indicates the end of an if block
         EndIf,
+        //! indicates a variable declaration
         Variable,
+        //! an identifier or user-permitted name
         Identifier,
+        //! The start of a while loop
         While,
+        //! the start of a do loop
         Do,
+        //! The end of a loop
         EndDo,
+        //! the start of a for loop
         For,
+        //! A left parenthesis
         ParenLeft,
+        //! a right parenthesis
         ParenRight,
+        //! a comma
         Comma,
+        //! A comment
         Comment,
+        //! a string literal
         String,
+        //! a numeric constant
         Number,
+        //! a return statement
         Return,
+        //! a plus sign '+'
         Plus,
+        //! an increment operator '++'
         Increment,
+        //! a subtraction operator
         Minus,
+        //! a decrement operator
         Decrement,
+        //! a multiplication operator
         Times,
+        //! a division operator
         Divide,
+        //! the modulo operator '%'
         Modulo,
+        //! the exponentiation operator '^'
         Exponent,
+        //! The semicolon, the statement terminator
         Semicolon,
+        //! the assignment/comparison operator
         Equal,
+        //! lesser than
         Lesser,
+        //! greater than
         Greater,
         GreaterEqual,
         LesserEqual,
@@ -53,8 +85,10 @@ namespace logo {
        * what it was lexed from
        * */
       struct Token {
+        //! The type of the token
         TokenType type;
         TokenType GetType() const { return type; }
+        //! The portion of the input that comprises the token
         std::string_view content;
       };
       /**

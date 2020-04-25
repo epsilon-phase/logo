@@ -4,6 +4,9 @@
 #include <string_view>
 namespace logo {
   namespace error {
+    /**
+     * A simple exception that makes syntax error reporting a tad easier
+     * */
     struct SyntaxException : public std::exception {
       std::string_view context;
       int line;

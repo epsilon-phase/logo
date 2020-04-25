@@ -1,6 +1,7 @@
 namespace logo {
   /**
    * \page Lexer State machine
+   * @see lexer
    * \dot
    * digraph G{
    *   start -> {id_1,op_1};
