@@ -2,6 +2,7 @@
 #include "./helper.hpp"
 #include "./lexer.hpp"
 #include <exception>
+#include <execinfo.h>
 #include <iostream>
 #include <sstream>
 using namespace logo::language;
@@ -10,13 +11,20 @@ using namespace logo::language::helper;
 #define TOSS_ERROR(tu, l) toss_error(tu, l, __LINE__)
 
 static void toss_error(const TranslationUnit &, const lexer &, int line);
+//! Is the next character potentially the start of an operator?
 static bool is_operator_candidate(char c);
+//! Is the character whitespace?
 static bool is_whitespace(char c);
+//! Is the character a quote?
 static inline bool is_quote(char c);
+//! Could the next character be the start of an identifier?
 static bool is_identifier_candidate(char c, bool first);
 static inline bool is_comment_candidate(const lexer &);
+//! Is the next char a possible number?
 static inline bool is_number_candidate(char c);
+//! Reduce tokenization such as Minus, Number to just the signed number
 static void simplify_number(TranslationUnit &);
+//! is the character potentially the start of a miscellaneous token?
 static inline bool is_misc_candidate(char c);
 /**
  * Returns true if the lexer is at the end of the input string
@@ -320,6 +328,15 @@ lexer helper::consume_misc(TranslationUnit &tu, const lexer &lx) {
   return l;
 }
 static void toss_error(const TranslationUnit &, const lexer &lex, int line) {
+  void *buffer[30];
+  char **symbols;
+  int symb_num = backtrace(buffer, 30);
+  symbols = backtrace_symbols(buffer, symb_num);
+
+  std::cerr << "Backtrace " << symb_num << "layers deep:" << std::endl;
+  for (int i = 0; i < symb_num; i++)
+    std::cerr << symbols[i] << std::endl;
+  delete[] symbols;
   std::cerr << "Error from state " << lex.current << " at " << lex.pe - lex.p
             << " originates on line " << line << std::endl
             << std::string_view(lex.line_start, lex.p - lex.line_start)
@@ -378,9 +395,6 @@ static void simplify_number(TranslationUnit &tu) {
       if (third.type == Identifier || third.type == Number)
         return;
     }
-    // TODO make this a little  bit more... introspective For example, it
-    // should try to figure out if the third to last token might rely on
-    // that subtraction
     auto new_num = tu.tokens.back();
     tu.tokens.pop_back();
     tu.tokens.pop_back();

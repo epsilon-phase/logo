@@ -74,15 +74,14 @@ TEST_CASE("Keywords are parsed", "[lexer]") {
     }
   }
   WHEN("The operators are parsed") {
-    const std::string operator_test = " ++ -- + - * / ^ || && > < >= <= == !=";
+    const std::string operator_test =
+        " ++ -- + - * / ^ || && > < >= <= == != =";
     const tokens::TokenType desired[] = {
-        Increment, Decrement,    Plus,        Minus,      Times,
-        Divide,    Exponent,     LogicalOr,   LogicalAnd, Greater,
-        Lesser,    GreaterEqual, LesserEqual, Equal,      NotEqual,
-
-    };
+        Increment,   Decrement, Plus,       Minus,   Times,  Divide,
+        Exponent,    LogicalOr, LogicalAnd, Greater, Lesser, GreaterEqual,
+        LesserEqual, IsEqual,   NotEqual,   Equal};
     auto lx = LexString(operator_test);
-    THEN("They are all found") { REQUIRE(lx.tokens.size() == 15); }
+    THEN("They are all found") { REQUIRE(lx.tokens.size() == 16); }
     THEN("They are correctly identified") {
       for (int i = 0; i < 15; i++) {
         if (lx.tokens[i].type != desired[i]) {

@@ -12,12 +12,15 @@ void TranslationUnit::add_token(tokens::TokenType t, const char *start,
                                 size_t length) {
   tokens.emplace_back(tokens::Token{t, std::string_view(start, length)});
 }
-static bool case_insensitive_equals(const std::string &s,
-                                    const std::string_view &sv) {
+static inline bool case_insensitive_equals(const std::string &s,
+                                           const std::string_view &sv) {
   auto i = s.cbegin();
   auto j = sv.cbegin();
   // Apparently this is considered necessary for
   // the prevention of timing attacks
+  //
+  // It is broadly unnecessary otherwise, but we felt like
+  // seeing what it would feel like to write it
 #ifdef CONSTANT_TIME_COMPARE
   bool can_be_equal = true;
 #endif
@@ -74,7 +77,7 @@ tokens::TokenType __detail::identify_keyword(const std::string_view &sv) {
 tokens::TokenType __detail::identify_operator(const std::string_view &sv) {
   using namespace tokens;
   if (sv == "==")
-    return Equal;
+    return IsEqual;
   if (sv == "=")
     return Equal;
   if (sv == "!=")

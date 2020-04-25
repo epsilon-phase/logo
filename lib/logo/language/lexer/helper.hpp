@@ -12,15 +12,22 @@ namespace logo {
      * external interface
      * */
     namespace helper {
+      /// Enumeration for states in a structure
+      /// that largely didn't materialize in a manner that made
+      /// them useful
       enum lexer_state {
         Normal,
         Ident,
         Operator,
         NumberS,
         ToEnd,
+        //! A comment
         Comment,
+        //! Double quoted string
         DString,
+        //! Single quoted string
         SString,
+        //! Not a good input D:
         Inappropriate
       };
       /**

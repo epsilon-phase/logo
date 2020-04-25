@@ -69,6 +69,7 @@ namespace logo {
         Semicolon,
         //! the assignment/comparison operator
         Equal,
+        IsEqual,
         //! lesser than
         Lesser,
         //! greater than
