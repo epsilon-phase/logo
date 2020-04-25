@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12..3.15)
 project(logoaway VERSION 0.0.0
-  DESCRIPTION "Lol, logo"
+  DESCRIPTION "Lol, 'logo'"
   LANGUAGES C CXX)
 include(CMakeDependentOption)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
@@ -13,12 +13,23 @@ set(CMAKE_POLICY_DEFAULT_CMP0069 NEW) #enable interprocedural optimization for a
 set(BUILD_SHARED_LIBS OFF)
 option(BUILD_TESTS "Build tests of logo runner" OFF)
 option(BUILD_LOGO_DOCS "Build the docs" OFF)
-add_subdirectory("extern/SFML")
+option(BUILD_FUZZ "Build fuzzed executable" OFF)
+option(BUILD_LOGO_GUI "Build Gui executable" OFF)
+
 RAGEL_TARGET(logo2 ${CMAKE_CURRENT_SOURCE_DIR}/lib/logo/language/lexer/lexer2.rl
              ${CMAKE_SOURCE_DIR}/lib/logo/language/lexer/lexer2.cpp)
 add_library(logo STATIC ${RAGEL_logo2_OUTPUTS})
-add_executable(logoaway)
-target_include_directories(logoaway PRIVATE ${CMAKE_SOURCE_DIR}/extern/SFML/include)
+if(BUILD_LOGO_GUI)
+  add_subdirectory("extern/SFML")
+  add_executable(logoaway)
+  target_include_directories(logoaway PRIVATE ${CMAKE_SOURCE_DIR}/extern/SFML/include)
+  target_link_libraries(logoaway sfml-graphics sfml-window logo)
+  add_subdirectory(gui)
+  target_include_directories(logoaway
+    PRIVATE extern/SFML/include
+            ${CMAKE_SOURCE_DIR}/lib
+  )
+endif()
 if(BUILD_LOGO_DOCS)
   CMAKE_DEPENDENT_OPTION(BUILD_LATEX_DOCS "Build latex output" OFF
                          "BUILD_LOGO_DOCS" off)
@@ -32,14 +43,16 @@ if(BUILD_LOGO_DOCS)
 endif()
 target_link_libraries(logo)
 
-target_link_libraries(logoaway sfml-graphics sfml-window logo)
 
-target_include_directories(logoaway
-  PRIVATE extern/SFML/include
-          ${CMAKE_SOURCE_DIR}/lib
-)
+
 add_subdirectory(lib/logo)
-add_subdirectory(gui)
+
+if(BUILD_FUZZ)
+  add_executable(logofuzz)
+  target_link_libraries(logofuzz PRIVATE logo)
+  target_include_directories(logofuzz PRIVATE ${CMAKE_SOURCE_DIR}/lib/logo)
+  add_subdirectory(tests/fuzzing)
+endif()
 if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()

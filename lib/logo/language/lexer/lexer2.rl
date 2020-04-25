@@ -21,9 +21,10 @@ using namespace language;
   }
   action identifier{
     std::string_view sv(start,p-start);
-    auto tt = __detail::identify_keyword(sv);
+    auto tt =  __detail::identify_keyword(sv);
     if(tt == tokens::Unknown)
-      tu.tokens.emplace_back(tokens::Token{tokens::Identifier,sv});
+      tt=tokens::Identifier;
+    tu.tokens.emplace_back(tokens::Token{tt,sv});
   }
   action parenthesis{
     std::string_view sv(start,1);
@@ -46,7 +47,7 @@ using namespace language;
   #Notably, this has no ability to signal that it needs escaping here. Given that the representation
   #makes it easier to debug if it isn't converted inline, this behavior will remain...
   #Hopefully to be fixed at the compilation step
-  string = '"' ([^\"]|'\\"')+ '"' %string;
+  string = ('"' ([^\"]|'\\"')* '"' | '\'' ([^']|'\\\'')*'\'') %string;
 #Keywords are meant to be case insensitive
   keyword = ([fF]'unction'
            | [Ee]'nd'([Ff]('or'|'unc'|'do')|[iI]'f'|[Ww]'hile')
@@ -64,9 +65,9 @@ using namespace language;
   comma = ',';
   operator = ('++'|'--'|'+'|'-'|'/'|'*'|'^'|'||'
            |'&&'|'>='|'=='|'<='|'!='|'>'|'<'|'=') %operator;
-  identifier = ([a-zA-Z_\$][a-zA-Z_0-9\$]*) %identifier;
-  main := (ws?(((number | keyword | identifier
-         |operator | string) >start ws+) |
+  identifier = ([a-zA-Z_\$][a-zA-Z_0-9\$]+) %identifier;
+  main := (ws?(((number | identifier
+         |operator | string) >start ws) |
         (lparen | rparen| semi | comma) >start ws*))*;
 }%%
 %% write data;

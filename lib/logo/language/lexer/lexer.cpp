@@ -7,7 +7,7 @@ TranslationUnit logo::language::LexString(const std::string &s) {
   result.contents = s;
   if (result.contents.back() != ' ' || result.contents.back() != '\t')
     result.contents.push_back(' ');
-  lex(result);
+  lex2(result);
   return result;
 }
 static bool case_insensitive_equals(const std::string &s,
@@ -92,5 +92,7 @@ tokens::TokenType __detail::identify_operator(const std::string_view &sv) {
     return Divide;
   if (sv == "^")
     return Exponent;
+  if (sv == "%")
+    return Modulo;
   return Unknown;
 }

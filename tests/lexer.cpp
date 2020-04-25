@@ -34,10 +34,17 @@ TEST_CASE("Keywords are parsed", "[lexer]") {
   const std::string func = "function endfunc ";
   WHEN("The Function Keywords are parsed") {
     auto lx = LexString(func);
-    THEN("The correct number is found") { REQUIRE(lx.tokens.size() == 2); }
-    THEN("They are correctly identified") {
-      REQUIRE(lx.tokens[0].type == Function);
-      REQUIRE(lx.tokens[1].type == EndFunc);
+    if (lx.tokens.size() != 2) {
+      for (const auto &i : lx.tokens) {
+        std::cout << i.content << " = " << TokenToString(i.type) << std::endl;
+      }
+    }
+    THEN("The correct number is found") {
+      REQUIRE(lx.tokens.size() == 2);
+      THEN("They are correctly identified") {
+        REQUIRE(lx.tokens[0].type == Function);
+        REQUIRE(lx.tokens[1].type == EndFunc);
+      }
     }
   }
   const std::string control_flow =
@@ -140,9 +147,18 @@ TEST_CASE("String tests", "[lexer]") {
         "while we're here huh?\"";
     auto lx = LexString(string_test);
     THEN("There's only one token found") { REQUIRE(lx.tokens.size() == 1); }
-    THEN("Quotes are omitted") {
-      REQUIRE(lx.tokens[0].content.front() != '"');
-      REQUIRE(lx.tokens[0].content.back() != '"');
+    THEN("Quotes are included") {
+      REQUIRE(lx.tokens[0].content.front() == '"');
+      REQUIRE(lx.tokens[0].content.back() == '"');
+    }
+  }
+  WHEN("Strings are using single quotes") {
+    const std::string single_quote_test = "'hi'";
+    auto lx = LexString(single_quote_test);
+    THEN("Only one string is found") { REQUIRE(lx.tokens.size() == 1); }
+    THEN("Quotes are still included") {
+      REQUIRE(lx.tokens[0].content.front() == '\'');
+      REQUIRE(lx.tokens[0].content.back() == '\'');
     }
   }
   WHEN("Strings contain escaped quotes") {

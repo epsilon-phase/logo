@@ -31,6 +31,7 @@ namespace logo {
         Decrement,
         Times,
         Divide,
+        Modulo,
         Exponent,
         Semicolon,
         Equal,
@@ -45,9 +46,11 @@ namespace logo {
         Unknown
       };
       /**
-       * A container for the relevant information for a token such as the text contained within and the type of token.
-       * 
-       * It does not own the string, so ensure that it lives only so long as what it was lexed from
+       * A container for the relevant information for a token such as the text
+       * contained within and the type of token.
+       *
+       * It does not own the string, so ensure that it lives only so long as
+       * what it was lexed from
        * */
       struct Token {
         TokenType type;

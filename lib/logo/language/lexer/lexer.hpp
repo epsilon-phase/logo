@@ -13,5 +13,6 @@ namespace logo {
     };
     TranslationUnit LexString(const std::string &s);
     void lex(TranslationUnit &);
+    void lex2(TranslationUnit &);
   } // namespace language
 } // namespace logo
