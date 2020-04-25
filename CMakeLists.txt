@@ -16,8 +16,8 @@ option(BUILD_LOGO_DOCS "Build the docs" OFF)
 option(BUILD_FUZZ "Build fuzzed executable" OFF)
 option(BUILD_LOGO_GUI "Build Gui executable" OFF)
 
-RAGEL_TARGET(logo2 ${CMAKE_CURRENT_SOURCE_DIR}/lib/logo/language/lexer/lexer2.rl
-             ${CMAKE_SOURCE_DIR}/lib/logo/language/lexer/lexer2.cpp)
+#RAGEL_TARGET(logo2 ${CMAKE_CURRENT_SOURCE_DIR}/lib/logo/language/lexer/lexer2.rl
+#             ${CMAKE_SOURCE_DIR}/lib/logo/language/lexer/lexer2.cpp)
 add_library(logo STATIC ${RAGEL_logo2_OUTPUTS})
 if(BUILD_LOGO_GUI)
   add_subdirectory("extern/SFML")
