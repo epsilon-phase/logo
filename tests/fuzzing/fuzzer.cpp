@@ -1,3 +1,4 @@
+#include <errors/syntaxexception.hpp>
 #include <fstream>
 #include <iostream>
 #include <language/lexer/lexer.hpp>
@@ -7,8 +8,12 @@ int main(int argc, char **argv) {
   std::ifstream t(argv[1]);
   std::string str((std::istreambuf_iterator<char>(t)),
                   std::istreambuf_iterator<char>());
-  auto lx = LexString(str);
-  for (const auto &i : lx.tokens) {
-    std::cout << TokenToString(i.type) << std::endl;
+  try {
+    auto lx = LexString(str);
+    for (const auto &i : lx.tokens) {
+      std::cout << TokenToString(i.type) << std::endl;
+    }
+  } catch (std::exception &) { // We don't care about the syntax errors, those
+                               // are signals it's working properly. :)
   }
 }

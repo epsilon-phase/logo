@@ -5,8 +5,6 @@ using namespace language;
 TranslationUnit logo::language::LexString(const std::string &s) {
   TranslationUnit result;
   result.contents = s;
-  if (result.contents.back() != ' ' || result.contents.back() != '\t')
-    result.contents.push_back(' ');
   lex2(result);
   return result;
 }

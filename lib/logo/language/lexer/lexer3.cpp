@@ -35,6 +35,7 @@ static lexer consume_number(TranslationUnit &, const lexer &);
 static lexer consume_identifier(TranslationUnit &, const lexer &);
 static lexer consume_operator(TranslationUnit &, const lexer &);
 static lexer consume_misc(TranslationUnit &, const lexer &);
+static lexer consume_comment(TranslationUnit &, const lexer &);
 void logo::language::lex2(TranslationUnit &s) {
   lexer lex = {s.contents.c_str(),
                s.contents.c_str() + s.contents.size(),
@@ -42,8 +43,10 @@ void logo::language::lex2(TranslationUnit &s) {
                s.contents.c_str(),
                Normal,
                1};
-
+  const char *last_pos = s.contents.c_str();
   while (lex.p != lex.pe && *lex.p != '\0') {
+    if (!is_at_end(lex))
+      lex = consume_comment(s, lex);
     lex = consume_whitespace(s, lex);
     if (!is_at_end(lex))
       lex = consume_string(s, lex);
@@ -57,6 +60,9 @@ void logo::language::lex2(TranslationUnit &s) {
       lex = consume_number(s, lex);
       if (s.tokens.size() > 1 && s.tokens.back().type == Number &&
           s.tokens[s.tokens.size() - 2].type == Minus) {
+        // TODO make this a little  bit more... introspective For example, it
+        // should try to figure out if the third to last token might rely on
+        // that subtraction
         auto new_num = s.tokens.back();
         s.tokens.pop_back();
         s.tokens.pop_back();
@@ -74,6 +80,12 @@ void logo::language::lex2(TranslationUnit &s) {
       lex = consume_identifier(s, lex);
     if (!is_at_end(lex))
       lex = consume_misc(s, lex);
+
+    if (last_pos != lex.p) {
+      last_pos = lex.p;
+    } else {
+      TOSS_ERROR(s, lex);
+    }
 #ifdef DEBUG_LEXER
     std::cout << lex.pe - lex.p << " characters remain(currently at '" << *lex.p
               << "'" << std::endl;
@@ -219,6 +231,10 @@ static lexer consume_operator(TranslationUnit &tu, const lexer &lx) {
   auto l = lx;
   if (!is_operator_candidate(*l.p))
     return lx;
+  // Necessary because otherwise it will not capture it properly.
+  if (*l.p == '/' && *(l.p + 1) == '/') {
+    return consume_comment(tu, lx);
+  }
   l.start = l.p;
   std::string_view best;
   tokens::TokenType t = Unknown;
@@ -292,4 +308,34 @@ static void toss_error(const TranslationUnit &, const lexer &lex, int line) {
             << std::string_view(lex.line_start, lex.p - lex.line_start)
             << std::endl;
   throw logo::error::SyntaxException(lex.line, lex.line_start, lex.p);
+}
+static lexer consume_comment(TranslationUnit &tu, const lexer &lx) {
+  lexer l = lx;
+  bool increment_again = false;
+  bool capture = false;
+  if (*l.p == '#' || (increment_again = (*l.p == '/' && *(l.p + 1) == '/'))) {
+    l.start = l.p + 1 + increment_again;
+    // TODO make it include locations for the comments and stuff.
+    while (*l.p != '\n' && l.pe != l.p)
+      l.p++;
+    capture = true;
+  }
+  if (*l.p == '/' && *(l.p + 1) == '*') {
+    l.p += 2;
+    l.start = l.p;
+    while (!(*(l.p - 1) == '*' && *l.p == '/')) {
+      l.p++;
+      if (l.p == l.pe) {
+        TOSS_ERROR(tu, l);
+      }
+    }
+    capture = true;
+  }
+  if (capture) {
+    tu.tokens.emplace_back(
+        Token{TokenType::Comment, std::string_view(l.start, l.p - l.start)});
+    if (l.p != l.pe)
+      l.p++;
+  }
+  return l;
 }

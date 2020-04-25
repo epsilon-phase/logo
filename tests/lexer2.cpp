@@ -3,10 +3,11 @@
 #include <logo/errors/syntaxexception.hpp>
 #include <logo/language/lexer/lexer.hpp>
 #include <string>
+using namespace logo::language;
+using namespace logo::language::tokens;
 static void list_tokens(const logo::language::TranslationUnit &);
 TEST_CASE("lex2 can find anything", "[lex2]") {
-  using namespace logo::language;
-  using namespace logo::language::tokens;
+
   WHEN("a string is present in the input") {
     const std::string basic = "\"hi\"";
     auto tu = TranslationUnit();
@@ -99,6 +100,39 @@ TEST_CASE("lex2 can find anything", "[lex2]") {
     THEN("They are correctly identified") {
       REQUIRE(tu.tokens[0].type == While);
       REQUIRE(tu.tokens[1].type == EndDo);
+    }
+  }
+}
+TEST_CASE("Comments", "[lex2]") {
+  WHEN("Comments are present") {
+    try {
+      const std::string comment = "//This is fine\n"
+                                  "//Right?";
+      auto tu = LexString(comment);
+      THEN("They are found") { REQUIRE(tu.tokens.size() == 2); }
+      THEN("They are identified as comments") {
+        REQUIRE(tu.tokens[0].type == Comment);
+        REQUIRE(tu.tokens[1].type == Comment);
+      }
+      THEN("They appear correct") {
+        REQUIRE(tu.tokens[0].content == "This is fine");
+        REQUIRE(tu.tokens[1].content == "Right?");
+      }
+    } catch (logo::error::SyntaxException &s) {
+      std::cout << s.get_context() << std::endl;
+    }
+  }
+  WHEN("The comments are multiline") {
+    try {
+      const std::string comment = "/*This is cool huh\n"
+                                  "Well, we think it is at least :) */";
+      auto tu = LexString(comment);
+      THEN("It is found") { REQUIRE(tu.tokens.size() == 1); }
+      THEN("They are identified as comments") {
+        REQUIRE(tu.tokens[0].type == Comment);
+      }
+    } catch (logo::error::SyntaxException &s) {
+      std::cout << s.get_context() << std::endl;
     }
   }
 }
