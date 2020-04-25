@@ -15,10 +15,15 @@ option(BUILD_TESTS "Build tests of logo runner" OFF)
 option(BUILD_LOGO_DOCS "Build the docs" OFF)
 option(BUILD_FUZZ "Build fuzzed executable" OFF)
 option(BUILD_LOGO_GUI "Build Gui executable" OFF)
+option(LOGO_DEBUG_LEXER "Build the lexer with some print statements that might be helpful when debugging problems"
+       OFF)
 
 #RAGEL_TARGET(logo2 ${CMAKE_CURRENT_SOURCE_DIR}/lib/logo/language/lexer/lexer2.rl
 #             ${CMAKE_SOURCE_DIR}/lib/logo/language/lexer/lexer2.cpp)
 add_library(logo STATIC ${RAGEL_logo2_OUTPUTS})
+if(LOGO_DEBUG_LEXER)
+  target_compile_definitions(logo PRIVATE DEBUG_LEXER)
+endif()
 if(BUILD_LOGO_GUI)
   add_subdirectory("extern/SFML")
   add_executable(logoaway)
