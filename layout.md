@@ -16,3 +16,5 @@
 * `tests` Test directory
 * `doc` Documentation that doesn't properly fit inline with
   the code
+  
+  All in .cpp files because doxygen prefers that for some reason

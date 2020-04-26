@@ -1,7 +1,7 @@
 #pragma once
 #include "./tokens.hpp"
+#include <memory>
 #include <vector>
-
 namespace logo {
   /**
    * The primary interface point of the lexer functionality in this project
@@ -21,11 +21,13 @@ namespace logo {
        * */
       tokens::TokenType identify_operator(const std::string_view &);
     } // namespace __detail
+    struct TokenStreamIterator;
     /**
      * A structure to hold a translation unit and the tokens that refer to the
      * string
      * */
-    struct TranslationUnit {
+    struct TranslationUnit
+        : public std::enable_shared_from_this<TranslationUnit> {
       std::string contents;
       std::vector<tokens::Token> tokens;
       /**
@@ -36,6 +38,27 @@ namespace logo {
        * @param length the length of the token
        * */
       void add_token(tokens::TokenType, const char *, size_t length);
+      TokenStreamIterator begin();
+      TokenStreamIterator end();
+    };
+    struct TokenStreamIterator {
+      std::shared_ptr<TranslationUnit> parent;
+      size_t position;
+      tokens::Token *operator->() const { return &parent->tokens[position]; }
+      tokens::Token &operator*() const { return parent->tokens[position]; }
+      bool operator==(const TokenStreamIterator &tsi) const {
+        return tsi.parent == parent && position == tsi.position;
+      }
+      TokenStreamIterator &operator++() {
+        this->position++;
+        return *this;
+      }
+      TokenStreamIterator operator++(int) {
+        auto t = *this;
+        this->position++;
+        return t;
+      }
+      bool remaining() const { return parent->tokens.size() > this->position; }
     };
     /**
      * Lex a string, producing a translation unit :)

@@ -1,0 +1,1 @@
+target_sources(logo PUBLIC ast.cpp astbase.cpp)

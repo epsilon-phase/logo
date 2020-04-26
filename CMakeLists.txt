@@ -17,7 +17,7 @@ option(BUILD_FUZZ "Build fuzzed executable" OFF)
 option(BUILD_LOGO_GUI "Build Gui executable" OFF)
 option(LOGO_DEBUG_LEXER "Build the lexer with some print statements that might be helpful when debugging problems"
        OFF)
-
+option(BUILD_WITH_COVERAGE "Build with coverage" OFF)
 #RAGEL_TARGET(logo2 ${CMAKE_CURRENT_SOURCE_DIR}/lib/logo/language/lexer/lexer2.rl
 #             ${CMAKE_SOURCE_DIR}/lib/logo/language/lexer/lexer2.cpp)
 add_library(logo STATIC ${RAGEL_logo2_OUTPUTS})
@@ -50,7 +50,6 @@ endif()
 target_link_libraries(logo)
 
 
-
 add_subdirectory(lib/logo)
 
 if(BUILD_FUZZ)
@@ -63,5 +62,12 @@ if(BUILD_FUZZ)
   target_compile_options(logo PUBLIC "-rdynamic")
 endif()
 if(BUILD_TESTS)
+  enable_testing()
   add_subdirectory(tests)
+endif()
+if(BUILD_WITH_COVERAGE)
+  target_link_libraries(logo "-fprofile-arcs -ftest-coverage --coverage")
+  target_compile_options(logo PUBLIC "-fprofile-arcs" "-ftest-coverage" "--coverage")
+  target_compile_options(logo_test PUBLIC  "-fprofile-arcs" "-ftest-coverage" "--coverage")
+  message("whoo")
 endif()

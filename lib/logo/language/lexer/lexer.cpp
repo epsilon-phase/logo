@@ -12,6 +12,12 @@ void TranslationUnit::add_token(tokens::TokenType t, const char *start,
                                 size_t length) {
   tokens.emplace_back(tokens::Token{t, std::string_view(start, length)});
 }
+TokenStreamIterator TranslationUnit::begin() {
+  return TokenStreamIterator{shared_from_this(), 0};
+}
+TokenStreamIterator TranslationUnit::end() {
+  return TokenStreamIterator{shared_from_this(), tokens.size()};
+}
 static inline bool case_insensitive_equals(const std::string &s,
                                            const std::string_view &sv) {
   auto i = s.cbegin();
