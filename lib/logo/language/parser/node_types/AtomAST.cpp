@@ -1,4 +1,5 @@
 #include "../detail/ast_prelude.hpp"
+#include <iostream>
 ParseResult<AtomAST> AtomAST::parse(TokenStreamIterator start) {
   auto result = std::make_unique<AtomAST>();
   if (start->type == ParenLeft) {
@@ -21,8 +22,10 @@ ParseResult<AtomAST> AtomAST::parse(TokenStreamIterator start) {
     start = s;
   } else if (start->type == Identifier && (start + 1)->type == ParenLeft) {
     auto c = CallAST::parse(start);
-    if (!c.has_value())
+    if (!c.has_value()) {
+      // std::cerr << "Call failed to match" << std::endl;
       FAIL;
+    }
     auto &[call, s] = c.value();
     result->add_child(std::move(call));
     start = s;

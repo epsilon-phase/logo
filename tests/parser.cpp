@@ -7,7 +7,11 @@
 using namespace logo::language;
 using namespace logo::language::tokens;
 using namespace logo::language::parser;
-
+static void list_tokens(const logo::language::TranslationUnit &tu) {
+  using namespace logo::language::tokens;
+  for (const auto &i : tu.tokens)
+    std::cout << "'" << i.content << "' " << TokenToString(i.type) << std::endl;
+}
 TEST_CASE("Simple parses", "[parser]") {
   WHEN("Empty function is parsed") {
     const std::string func = "function hello() endfunc";
@@ -95,5 +99,17 @@ TEST_CASE("Expression tests", "[parser]") {
       REQUIRE(e->children[0]->children.size() == 2);
       REQUIRE(e->count_leaves() == 2);
     }
+  }
+  WHEN("A call is made") {
+    const std::string call = "call(15)";
+    for (int i = 0; i < call.size(); i++)
+      std::cout << (int)call[i] << " ";
+    std::cout << "\n";
+    auto lx = shared_lex(call);
+
+    list_tokens(*lx);
+    REQUIRE(lx->tokens[0].content.data()[0] == lx->contents.c_str()[0]);
+    auto ex = ExpressionAST::parse(lx->begin());
+    THEN("It is parsed") { REQUIRE(ex.has_value()); }
   }
 }

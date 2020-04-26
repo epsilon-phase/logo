@@ -8,6 +8,12 @@ TranslationUnit logo::language::LexString(const std::string &s) {
   lex2(result);
   return result;
 }
+std::shared_ptr<TranslationUnit> language::shared_lex(const std::string &s) {
+  auto r = std::make_shared<TranslationUnit>();
+  r->contents = s;
+  lex2(*r);
+  return r;
+}
 void TranslationUnit::add_token(tokens::TokenType t, const char *start,
                                 size_t length) {
   tokens.emplace_back(tokens::Token{t, std::string_view(start, length)});

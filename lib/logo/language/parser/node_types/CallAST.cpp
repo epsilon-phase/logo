@@ -1,19 +1,29 @@
 #include "../detail/ast_prelude.hpp"
+#include <iostream>
 ParseResult<CallAST> CallAST::parse(TokenStreamIterator start) {
   auto result = std::make_unique<CallAST>();
-  if (start->type != Identifier || (start + 1)->type != ParenLeft)
+  if (start->type != Identifier || (start + 1)->type != ParenLeft) {
+    std::cerr << "Initial tokens failed" << std::endl;
     FAIL;
+  }
   start = start + 2;
   while (start->type != ParenRight) {
     auto e = ExpressionAST::parse(start);
-    if (!e.has_value())
+    if (!e.has_value()) {
+      // std::cerr << "Failed to match expression" << std::endl;
       FAIL;
+    }
     auto &[e1, s] = e.value();
+    e1->print_tree(std::cerr, 0);
     start = s;
     result->add_child(std::move(e1));
-    if (start->type != Comma || start->type != ParenRight)
+    if (start->type != Comma && start->type != ParenRight) {
+      // std::cerr << "Failed to match on " << TokenToString(start->type)
+      // << std::endl;
       FAIL;
-    start++;
+    }
+    if (start->type != ParenRight)
+      start++;
   }
   return Succeed(result, start);
 }

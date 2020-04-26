@@ -5,5 +5,6 @@ ConstantLiteralAST::parse(TokenStreamIterator start) {
     FAIL;
   auto result = std::make_unique<ConstantLiteralAST>();
   result->token = &(*start);
-  return Succeed(result, ++start);
+  start++;
+  return Succeed(result, start);
 }

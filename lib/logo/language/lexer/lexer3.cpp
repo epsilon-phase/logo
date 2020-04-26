@@ -42,14 +42,14 @@ void logo::language::lex2(TranslationUnit &s) {
                1};
   const char *last_pos = s.contents.c_str();
   while (lex.p != lex.pe && *lex.p != '\0') {
-    if (is_comment_candidate(lex)) {
+    if (is_identifier_candidate(*lex.p, true)) {
+      lex = consume_identifier(s, lex);
+    } else if (is_comment_candidate(lex)) {
       lex = consume_comment(s, lex);
     } else if (is_whitespace(*lex.p)) {
       lex = consume_whitespace(s, lex);
     } else if (is_operator_candidate(*lex.p)) {
       lex = consume_operator(s, lex);
-    } else if (is_identifier_candidate(*lex.p, true)) {
-      lex = consume_identifier(s, lex);
     } else if (is_number_candidate(*lex.p)) {
       lex = consume_number(s, lex);
       simplify_number(s);

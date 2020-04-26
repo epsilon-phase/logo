@@ -77,6 +77,7 @@ namespace logo {
         bool can_collapse() const;
         // virtual void compile() const = 0;
       };
+      //! A literal present in the source file
       struct ConstantLiteralAST : public ASTNodeBase {
         virtual ~ConstantLiteralAST() {}
         virtual const char *what() const { return "Constant"; }

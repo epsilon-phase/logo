@@ -89,6 +89,7 @@ namespace logo {
      * Lex a string, producing a translation unit :)
      * */
     TranslationUnit LexString(const std::string &s);
+    std::shared_ptr<TranslationUnit> shared_lex(const std::string &s);
     void lex(TranslationUnit &);
     /**
      * The new hand-written lexer function

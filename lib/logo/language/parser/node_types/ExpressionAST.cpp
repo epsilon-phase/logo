@@ -7,5 +7,6 @@ ParseResult<ExpressionAST> ExpressionAST::parse(TokenStreamIterator start) {
     FAIL;
   auto &[a, s] = add.value();
   result->add_child(std::move(a));
+  start = s;
   return Succeed(result, start);
 }
