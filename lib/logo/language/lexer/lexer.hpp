@@ -42,6 +42,8 @@ namespace logo {
       TokenStreamIterator end();
     };
     struct TokenStreamIterator {
+      //! Indicates that the TSI should skip comments;
+      bool skip_comments = true;
       std::shared_ptr<TranslationUnit> parent;
       size_t position;
       tokens::Token *operator->() const { return &parent->tokens[position]; }
@@ -51,14 +53,32 @@ namespace logo {
       }
       TokenStreamIterator &operator++() {
         this->position++;
+        if (skip_comments) {
+          skip_comment();
+        }
         return *this;
       }
       TokenStreamIterator operator++(int) {
         auto t = *this;
         this->position++;
+        if (skip_comments)
+          skip_comment();
         return t;
       }
+      TokenStreamIterator operator+(int i) const {
+        auto r = *this;
+        r.position += i;
+        return r;
+      }
       bool remaining() const { return parent->tokens.size() > this->position; }
+
+    private:
+      void skip_comment() {
+        while (remaining() &&
+               parent->tokens[position].type == tokens::Comment) {
+          position++;
+        }
+      }
     };
     /**
      * Lex a string, producing a translation unit :)

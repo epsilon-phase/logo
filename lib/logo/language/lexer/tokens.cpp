@@ -7,7 +7,8 @@ const std::string token_names[logo::language::tokens::Unknown + 1] = {
     "Increment",  "Minus",     "Decrement",    "Times",       "Divide",
     "Modulo",     "Exponent",  "Semicolon",    "Equal",       "IsEqual",
     "Lesser",     "Greater",   "GreaterEqual", "LesserEqual", "NotEqual",
-    "LogicalAnd", "LogicalOr", "Not",          "Unknown"};
+    "LogicalAnd", "LogicalOr", "Not",          "BracketLeft", "BracketRight",
+    "Unknown"};
 std::string logo::language::tokens::TokenToString(TokenType t) {
   return token_names[t];
 }

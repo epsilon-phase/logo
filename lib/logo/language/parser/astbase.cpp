@@ -14,3 +14,7 @@ void ASTNodeBase::print_tree(std::ostream &o, int depth) const {
   for (const auto &i : children)
     i->print_tree(o, depth + 1);
 }
+void ASTNodeBase::add_child(std::unique_ptr<ASTNodeBase> &&nb) {
+  nb->parent = this;
+  children.emplace_back(std::move(nb));
+}

@@ -80,6 +80,10 @@ namespace logo {
         LogicalAnd,
         LogicalOr,
         Not,
+        //! Left bracket '['
+        BracketLeft,
+        //! Right bracket ']'
+        BracketRight,
         Unknown
       };
       /**

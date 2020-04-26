@@ -19,7 +19,7 @@ TEST_CASE("Simple parses", "[parser]") {
     THEN("It is indeed what it should be") {
       REQUIRE(c->what() == std::string("Function"));
     }
-    THEN("IT has precisely one child") { REQUIRE(c->children.size() == 1); }
+    THEN("IT has precisely one child") { REQUIRE(c->children.size() == 2); }
     THEN("That child is a parameter type") {
       REQUIRE(c->children[0]->what() == std::string("Parameter"));
     }
@@ -42,6 +42,21 @@ TEST_CASE("Simple parses", "[parser]") {
     THEN("It is parsed") { REQUIRE(c != nullptr); }
     THEN("It has 9 parameter children") {
       REQUIRE(c->children[0]->children.size() == 9);
+    }
+    c->print_tree(std::cout, 0);
+  }
+  WHEN("A function is parsed with a variable declaration") {
+    const std::string func = "function variables()\n"
+                             "variable a b c;\n"
+                             "endfunc";
+    auto lx = std::make_shared<TranslationUnit>(LexString(func));
+    auto c = ParseToplevel(lx);
+    THEN("It parses") { REQUIRE(c != nullptr); }
+    THEN("It contains a block in the second slot") {
+      REQUIRE(c->children[1]->what() == std::string("Block"));
+      REQUIRE(c->children[1]->children[0]->children[0]->what() ==
+              std::string("Variable declaration"));
+      REQUIRE(c->children[1]->children[0]->children[0]->children.size() == 3);
     }
     c->print_tree(std::cout, 0);
   }

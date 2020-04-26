@@ -247,7 +247,8 @@ lexer helper::consume_identifier(TranslationUnit &tu, const lexer &lx) {
   return l;
 }
 static bool can_follow_operator(const lexer &lx) {
-  return is_whitespace(*lx.p) || is_identifier_candidate(*lx.p, true);
+  return is_whitespace(*lx.p) || is_identifier_candidate(*lx.p, true) ||
+         is_misc_candidate(*lx.p);
 }
 lexer helper::consume_operator(TranslationUnit &tu, const lexer &lx) {
   auto l = lx;
@@ -302,6 +303,10 @@ static bool is_whitespace(char c) {
 static bool is_at_end(const lexer &l) { return l.p == l.pe || *l.p == '\0'; }
 static TokenType which_misc(char c) {
   switch (c) {
+  case '[':
+    return BracketLeft;
+  case ']':
+    return BracketRight;
   case '(':
     return ParenLeft;
   case ')':
