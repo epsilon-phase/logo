@@ -6,4 +6,11 @@ target_sources(logo PUBLIC VariableDecAST.cpp
                            ConstantLiteralAST.cpp
                            ExpressionAST.cpp
                            LValueAST.cpp
-                           ArrayAccessAST.cpp)
+                           RValueAST.cpp
+                           ArrayAccessAST.cpp
+                           AtomAST.cpp
+                           AddSub.cpp
+                           MultDiv.cpp
+                           ExponentExpr.cpp
+                           CallAST.cpp
+                           VariableNameAST.cpp)

@@ -1,5 +1,6 @@
 #include "./catch2.hpp"
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <logo/language/parser/ast.hpp>
 #include <memory>
@@ -59,5 +60,40 @@ TEST_CASE("Simple parses", "[parser]") {
       REQUIRE(c->children[1]->children[0]->children[0]->children.size() == 3);
     }
     c->print_tree(std::cout, 0);
+  }
+}
+TEST_CASE("Expression tests", "[parser]") {
+  WHEN("it consists of a single number") {
+    std::string num = " 1.5 ";
+    auto lx = std::make_shared<TranslationUnit>(LexString(num));
+    auto ex = ExpressionAST::parse(lx->begin());
+    THEN("It parses") { REQUIRE(ex.has_value()); }
+    std::get<0>(ex.value())->print_tree(std::cerr, 0);
+    auto [e, s] = std::move(ex.value());
+    THEN("It has the expected sequence") {
+      std::string correct[] = {"Expression", "AddSub", "MultDiv",
+                               "ExponentExpr", "Atom"};
+      for (auto [i, ptr] = std::tuple{0, (ASTNodeBase *)e.get()};
+           ptr->children.size() > 0; ptr = ptr->children[0].get(), i++) {
+        REQUIRE(correct[i] == ptr->what());
+      }
+    }
+    e->collapse();
+    THEN("Collapsed, it comes out to the correct sequence as well") {
+      REQUIRE(e->what() == std::string("Expression"));
+      REQUIRE(e->children[0]->what() == std::string("Atom"));
+    }
+  }
+  WHEN("It consists of a simple arithmetic expression") {
+    const std::string arith = " 1.5 + 4.6 ";
+    auto lx = std::make_shared<TranslationUnit>(LexString(arith));
+    auto ex = ExpressionAST::parse(lx->begin());
+    THEN("It is parsed") { REQUIRE(ex.has_value()); }
+    auto [e, _] = std::move(ex.value());
+
+    THEN("It has two leaves") {
+      REQUIRE(e->children[0]->children.size() == 2);
+      REQUIRE(e->count_leaves() == 2);
+    }
   }
 }

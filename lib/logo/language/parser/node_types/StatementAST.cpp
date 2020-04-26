@@ -11,8 +11,17 @@ ParseResult<StatementAST> StatementAST::parse(TokenStreamIterator start) {
       result->add_child(std::move(va));
     }
 
+  } else if (start->type == Identifier) {
+    if ((start + 1)->type == ParenLeft) {
+      auto call = CallAST::parse(start + 1);
+      if (!call.has_value()) {
+        FAIL;
+      } else {
+        auto &[c, s] = call.value();
+      }
+    }
   } else {
-    return std::nullopt;
+    FAIL;
   }
   if (start->type != Semicolon) {
     std::cerr << "Expected semicolon, got " << TokenToString(start->type)

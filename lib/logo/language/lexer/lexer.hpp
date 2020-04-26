@@ -70,6 +70,11 @@ namespace logo {
         r.position += i;
         return r;
       }
+      TokenStreamIterator operator+=(int i) {
+        auto r = *this;
+        this->position += i;
+        return r;
+      }
       bool remaining() const { return parent->tokens.size() > this->position; }
 
     private:

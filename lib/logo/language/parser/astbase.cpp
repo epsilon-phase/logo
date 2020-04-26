@@ -18,3 +18,47 @@ void ASTNodeBase::add_child(std::unique_ptr<ASTNodeBase> &&nb) {
   nb->parent = this;
   children.emplace_back(std::move(nb));
 }
+void ASTNodeBase::collapse() {
+  bool clean = false;
+
+  for (size_t index = 0; index < children.size(); index++) {
+    auto *child = children[index].get();
+    if (!child->can_collapse()) {
+      // Descend the chain then
+      child->collapse();
+    } else {
+      while (child->can_collapse()) {
+        children[index] = std::move(child->children[0]);
+        child = children[index].get();
+        clean = false;
+      }
+    }
+  }
+}
+bool ASTNodeBase::can_collapse() const {
+  return collapsible() && children.size() == 1;
+}
+int ASTNodeBase::produce_dot(std::ostream &f, int thisid, int parentid) const {
+  if (thisid == -1) {
+    f << "Digraph G{\n";
+    thisid++;
+  }
+  int successor = thisid + 1;
+  if (parentid != -1)
+    f << parentid << "->" << thisid << ";" << std::endl;
+  f << thisid << "[label=\"" << what() << "\"];\n";
+  for (const auto &child : children) {
+    successor = child->produce_dot(f, successor, thisid);
+  }
+  if (thisid == 0)
+    f << "}";
+  return successor + 1;
+}
+size_t ASTNodeBase::count_leaves() const {
+  if (children.empty())
+    return 1;
+  size_t r = 0;
+  for (const auto &c : children)
+    r += c->count_leaves();
+  return r;
+}

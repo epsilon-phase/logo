@@ -1,7 +1,7 @@
 #include "../detail/ast_prelude.hpp"
 ParseResult<AtomAST> AtomAST::parse(TokenStreamIterator start) {
   auto result = std::make_unique<AtomAST>();
-  if (start->type == '(') {
+  if (start->type == ParenLeft) {
     auto expr = ExpressionAST::parse(start);
     if (!expr.has_value())
       FAIL;
@@ -9,7 +9,7 @@ ParseResult<AtomAST> AtomAST::parse(TokenStreamIterator start) {
 
     result->add_child(std::move(ex));
     start = s;
-    if (start->type != ')')
+    if (start->type != ParenRight)
       FAIL;
     start++;
   } else if ((start + 1)->type == BracketLeft) {

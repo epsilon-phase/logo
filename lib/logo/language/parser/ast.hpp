@@ -38,6 +38,17 @@ namespace logo {
         std::vector<std::unique_ptr<ASTNodeBase>> children;
         //! Descriptive text of the node type
         virtual const char *what() const = 0;
+        virtual bool collapsible() const { return false; }
+        /**
+         * Attempt to collapse the tree.
+         *
+         * 1. For each child node
+         *   1. If it is not of a collapsible type, recurse into it
+         *   2. Replace it with its only child
+         *   3. If that child is collapsible the replace that with its only
+         *      child
+         * */
+        void collapse();
         //! Print the tree to the given stream.
         /**
          * @param o The output stream
@@ -45,9 +56,25 @@ namespace logo {
          * */
         void print_tree(std::ostream &, int depth) const;
         /**
+         * Produce a graphviz file representing the syntax tree and print to the
+         * stream
+         *
+         * @param f The stream
+         * @param thisid The id for this node
+         * @param The parent id
+         * @returns The id for the next node
+         * */
+        int produce_dot(std::ostream &, int thisid = -1,
+                        int parentid = -1) const;
+        /**
          * Move a child into the subtree, modifying \see ASTNodeBase::parent
          * */
         void add_child(std::unique_ptr<ASTNodeBase> &&);
+        size_t count_leaves() const;
+
+      private:
+        //! returns true if the node has one child and is of a collapsible type,
+        bool can_collapse() const;
         // virtual void compile() const = 0;
       };
       struct ConstantLiteralAST : public ASTNodeBase {
@@ -71,6 +98,8 @@ namespace logo {
         virtual const char *what() const {
           return "BinaryOp(Override me plox)";
         }
+        virtual bool collapsible() const { return true; }
+        void collapse();
       };
       struct AddSub : public BinaryOpAST {
         virtual ~AddSub() {}
@@ -94,7 +123,8 @@ namespace logo {
        * Hierarchy:->
        * \dot
        * digraph G{
-       *   Expression -> AddSub -> Multiplication -> Exponent -> Atom;
+       *   Expression -> Boolean -> Comparison;
+       *   Comparison -> AddSub -> Multiplication -> Exponent -> Atom;
        *   AddSub -> AddSub [label="[+-]"];
        *   Multiplication -> Multiplication [label="('*'|'/'|'%')"];
        *   Exponent -> Exponent [label="^"];
