@@ -66,6 +66,18 @@ TEST_CASE("Simple parses", "[parser]") {
     c->print_tree(std::cout, 0);
   }
 }
+TEST_CASE("Assignment tests", "[parser]") {
+  WHEN("A simple assignment is made 'a=1+2'") {
+    const std::string assignment = "a=1+2";
+    auto ass = shared_lex(assignment);
+    auto parse = AssignmentAST::parse(ass->begin());
+    THEN("It is parsed") { REQUIRE(parse.has_value()); }
+    auto [tree, _] = std::move(parse.value());
+    THEN("The tree has the correct number of leaves(3)") {
+      REQUIRE(tree->count_leaves() == 3);
+    }
+  }
+}
 TEST_CASE("Expression tests", "[parser]") {
   WHEN("it consists of a single number") {
     std::string num = " 1.5 ";

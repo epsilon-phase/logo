@@ -31,12 +31,12 @@ ParseResult<AtomAST> AtomAST::parse(TokenStreamIterator start) {
     start = s;
   } else if (start->type == Identifier) {
     auto r = VariableNameAST::parse(start);
+    if (!r.has_value())
+      FAIL;
     auto &[nv, s] = r.value();
     result->add_child(std::move(nv));
     start = s;
-    if (start->type != ParenRight)
-      FAIL;
-    start++;
+
   } else if (start->type == Number || start->type == String) {
     auto cl = ConstantLiteralAST::parse(start);
     auto &[c, s] = cl.value();

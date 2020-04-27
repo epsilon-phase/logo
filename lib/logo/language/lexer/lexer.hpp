@@ -41,6 +41,8 @@ namespace logo {
       TokenStreamIterator begin();
       TokenStreamIterator end();
     };
+    // TODO move the implementation of the TokenStreamIterator methods
+    // into their own file
     struct TokenStreamIterator {
       //! Indicates that the TSI should skip comments;
       bool skip_comments = true;
@@ -93,7 +95,7 @@ namespace logo {
     void lex(TranslationUnit &);
     /**
      * The new hand-written lexer function
-     * @param tu The translation unit being modified
+     * @param tu The translation unit being populated
      * */
     void lex2(TranslationUnit &);
   } // namespace language
