@@ -9,6 +9,8 @@ target_sources(logo PUBLIC VariableDecAST.cpp
                            RValueAST.cpp
                            ArrayAccessAST.cpp
                            AtomAST.cpp
+                           BooleanAST.cpp
+                           ComparisonAST.cpp
                            AddSub.cpp
                            MultDiv.cpp
                            ExponentExpr.cpp

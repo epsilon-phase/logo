@@ -72,6 +72,8 @@ namespace logo {
          * */
         void add_child(std::unique_ptr<ASTNodeBase> &&);
         size_t count_leaves() const;
+        //! Count the number of nodes overall in the tree
+        size_t tree_size() const;
 
       private:
         //! returns true if the node has one child and is of a collapsible type,
@@ -102,6 +104,16 @@ namespace logo {
         }
         virtual bool collapsible() const { return true; }
         void collapse();
+      };
+      struct BooleanAST : public BinaryOpAST {
+        virtual ~BooleanAST() {}
+        virtual const char *what() const { return "BooleanExpr"; }
+        static ParseResult<BooleanAST> parse(TokenStreamIterator start);
+      };
+      struct ComparisonAST : public BinaryOpAST {
+        virtual ~ComparisonAST() {}
+        virtual const char *what() const { return "ComparisonExpr"; }
+        static ParseResult<ComparisonAST> parse(TokenStreamIterator start);
       };
       struct AddSub : public BinaryOpAST {
         virtual ~AddSub() {}
@@ -216,8 +228,13 @@ namespace logo {
         static ParseResult<FunctionAST> parse(TokenStreamIterator start);
         virtual const char *what() const { return "Function"; }
       };
+      /**
+       * Parse the toplevel of the grammar, returning the AST.
+       * @param tu The translationunit to parse
+       * @param collapse Whether to collapse unnecessary nodes if possible
+       * */
       std::unique_ptr<ASTNodeBase>
-      ParseToplevel(std::shared_ptr<TranslationUnit> &);
+      ParseToplevel(std::shared_ptr<TranslationUnit> &, bool collapse = true);
     } // namespace parser
   }   // namespace language
 } // namespace logo

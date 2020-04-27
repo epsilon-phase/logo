@@ -75,8 +75,9 @@ TEST_CASE("Expression tests", "[parser]") {
     std::get<0>(ex.value())->print_tree(std::cerr, 0);
     auto [e, s] = std::move(ex.value());
     THEN("It has the expected sequence") {
-      std::string correct[] = {"Expression", "AddSub", "MultDiv",
-                               "ExponentExpr", "Atom"};
+      std::string correct[] = {"Expression", "BooleanExpr", "ComparisonExpr",
+                               "AddSub",     "MultDiv",     "ExponentExpr",
+                               "Atom"};
       for (auto [i, ptr] = std::tuple{0, (ASTNodeBase *)e.get()};
            ptr->children.size() > 0; ptr = ptr->children[0].get(), i++) {
         REQUIRE(correct[i] == ptr->what());
@@ -94,22 +95,20 @@ TEST_CASE("Expression tests", "[parser]") {
     auto ex = ExpressionAST::parse(lx->begin());
     THEN("It is parsed") { REQUIRE(ex.has_value()); }
     auto [e, _] = std::move(ex.value());
-
-    THEN("It has two leaves") {
-      REQUIRE(e->children[0]->children.size() == 2);
-      REQUIRE(e->count_leaves() == 2);
-    }
+    e->collapse();
+    THEN("It has two leaves") { REQUIRE(e->count_leaves() == 2); }
   }
   WHEN("A call is made") {
     const std::string call = "call(15)";
-    for (int i = 0; i < call.size(); i++)
-      std::cout << (int)call[i] << " ";
-    std::cout << "\n";
     auto lx = shared_lex(call);
 
     list_tokens(*lx);
     REQUIRE(lx->tokens[0].content.data()[0] == lx->contents.c_str()[0]);
     auto ex = ExpressionAST::parse(lx->begin());
     THEN("It is parsed") { REQUIRE(ex.has_value()); }
+    auto [e, _] = std::move(ex.value());
+    auto pre_collapse = e->tree_size();
+    e->collapse();
+    e->print_tree(std::cout, 0);
   }
 }

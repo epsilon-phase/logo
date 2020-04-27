@@ -19,8 +19,6 @@ void ASTNodeBase::add_child(std::unique_ptr<ASTNodeBase> &&nb) {
   children.emplace_back(std::move(nb));
 }
 void ASTNodeBase::collapse() {
-  bool clean = false;
-
   for (size_t index = 0; index < children.size(); index++) {
     auto *child = children[index].get();
     if (!child->can_collapse()) {
@@ -30,10 +28,23 @@ void ASTNodeBase::collapse() {
       while (child->can_collapse()) {
         children[index] = std::move(child->children[0]);
         child = children[index].get();
-        clean = false;
       }
+      child->collapse();
     }
   }
+}
+size_t ASTNodeBase::tree_size() const {
+  if (children.empty())
+    return 1;
+  size_t sum = 1;
+  // Hopefully the trees shall not be so deep that this recursion
+  // should be an issue.
+  // Of course, we're sure that won't hold up against a sufficiently determined
+  // user
+  for (const auto &i : children) {
+    sum += i->tree_size();
+  }
+  return sum;
 }
 bool ASTNodeBase::can_collapse() const {
   return collapsible() && children.size() == 1;

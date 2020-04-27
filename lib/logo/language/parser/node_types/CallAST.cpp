@@ -6,6 +6,7 @@ ParseResult<CallAST> CallAST::parse(TokenStreamIterator start) {
     std::cerr << "Initial tokens failed" << std::endl;
     FAIL;
   }
+  result->token = &(*start);
   start = start + 2;
   while (start->type != ParenRight) {
     auto e = ExpressionAST::parse(start);
@@ -14,7 +15,6 @@ ParseResult<CallAST> CallAST::parse(TokenStreamIterator start) {
       FAIL;
     }
     auto &[e1, s] = e.value();
-    e1->print_tree(std::cerr, 0);
     start = s;
     result->add_child(std::move(e1));
     if (start->type != Comma && start->type != ParenRight) {

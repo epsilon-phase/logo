@@ -41,10 +41,12 @@ ParseResult<ParameterAST> ParameterAST::parse(TokenStreamIterator start) {
 }
 
 std::unique_ptr<ASTNodeBase>
-parser::ParseToplevel(std::shared_ptr<TranslationUnit> &tu) {
+parser::ParseToplevel(std::shared_ptr<TranslationUnit> &tu, bool collapse) {
   auto result = FunctionAST::parse(tu->begin());
   if (!result.has_value())
     return nullptr;
   auto &[i, pos] = result.value();
+  if (collapse)
+    i->collapse();
   return std::move(i);
 }
