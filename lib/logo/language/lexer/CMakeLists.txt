@@ -1,1 +1,1 @@
-target_sources(logo PUBLIC lexer.cpp tokens.cpp lexer3.cpp)
+target_sources(logo PUBLIC lexer.cpp tokens.cpp lexer3.cpp tokenclass.cpp)

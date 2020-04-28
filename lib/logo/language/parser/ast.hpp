@@ -82,6 +82,14 @@ namespace logo {
          * */
         bool explore(std::function<bool(ASTNodeBase *)>);
         bool is_leaf() const;
+        /**
+         * Handle processing type specific post-parsing steps, such as
+         *collecting the names of variables (since this will be useful).
+         **/
+        virtual void finish() {
+          for (auto &i : children)
+            i->finish();
+        }
 
       private:
         //! returns true if the node has one child and is of a collapsible
@@ -300,6 +308,7 @@ namespace logo {
         virtual ~FunctionAST() {}
         static ParseResult<FunctionAST> parse(TokenStreamIterator start);
         virtual const char *what() const { return "Function"; }
+        virtual void finish();
       };
       //! File node, File -> Function+
       struct FileAST : public ASTNodeBase {

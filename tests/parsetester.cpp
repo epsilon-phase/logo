@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include <logo/language/lexer/lexer.hpp>
 #include <logo/language/parser/ast.hpp>

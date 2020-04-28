@@ -27,3 +27,14 @@ ParseResult<FunctionAST> FunctionAST::parse(TokenStreamIterator start) {
   start++;
   return std::make_optional(std::make_tuple(std::move(result), start));
 }
+void FunctionAST::finish() {
+  const std::string vn = "Variable Name";
+  explore([&](ASTNodeBase *t) {
+    if (t->what() == vn) {
+      auto tname = std::string(t->token->content);
+      if (local_symbols.find(tname) == local_symbols.end())
+        local_symbols[tname] = local_symbols.size();
+    }
+    return true;
+  });
+}
