@@ -12,6 +12,10 @@ static void list_tokens(const logo::language::TranslationUnit &tu) {
   for (const auto &i : tu.tokens)
     std::cout << "'" << i.content << "' " << TokenToString(i.type) << std::endl;
 }
+template <typename T> std::unique_ptr<T> unwrap(ParseResult<T> &r) {
+  auto [a, b] = std::move(r.value());
+  return std::move(a);
+}
 TEST_CASE("Simple parses", "[parser]") {
   WHEN("Empty function is parsed") {
     const std::string func = "function hello() endfunc";
@@ -102,11 +106,12 @@ TEST_CASE("Assignment tests", "[parser]") {
 TEST_CASE("Expression tests", "[parser]") {
   WHEN("it consists of a single number") {
     std::string num = " 1.5 ";
-    auto lx = std::make_shared<TranslationUnit>(LexString(num));
+    auto lx = shared_lex(num);
     auto ex = ExpressionAST::parse(lx->begin());
     THEN("It parses") { REQUIRE(ex.has_value()); }
-    std::get<0>(ex.value())->print_tree(std::cerr, 0);
+    // std::get<0>(ex.value())->print_tree(std::cerr, 0);
     auto [e, s] = std::move(ex.value());
+    e->print_tree(std::cerr, 0);
     THEN("It has the expected sequence") {
       std::string correct[] = {"Expression", "BooleanExpr", "ComparisonExpr",
                                "AddSub",     "MultDiv",     "ExponentExpr",
@@ -175,5 +180,93 @@ TEST_CASE("If statement", "[parser]") {
     REQUIRE(p != nullptr);
     p->collapse();
     p->print_tree(std::cout, 0);
+  }
+}
+TEST_CASE("For Loop", "[parser]") {
+  WHEN("A simple for loop is present") {
+    const std::string forloop = "for i=0;i<15;i=i+1 do\n enddo";
+    auto lx = shared_lex(forloop);
+    auto parsed = ForLoopAST::parse(lx->begin());
+    THEN("It is parsed") { REQUIRE(parsed.has_value()); }
+    auto [forl, _] = std::move(parsed.value());
+    THEN("It contains the expected descendants") {
+
+      const std::string expected[] = {"Assignment", "Expression", "Assignment",
+                                      "Block"};
+      for (int index = 0; index < forl->children.size(); index++)
+        REQUIRE(expected[index] == forl->children[index]->what());
+    }
+    THEN("The leaves are correct") {
+      const std::string expected[] = {"i", "0", "i", "15", "i", "i", "1", ""};
+      int index = 0;
+      forl->explore([&expected, &index](ASTNodeBase *t) {
+        if (t->is_leaf() && t->token) {
+          REQUIRE(expected[index] == t->token->content);
+          index++;
+        }
+        return true;
+      });
+    }
+  }
+  WHEN("It is present from the toplevel") {
+    const std::string forFunc = "function forloop()\n"
+                                "for a=0;a<15;a=a+1 do\n"
+                                "print(a);\n"
+                                "enddo\n"
+                                "endfunc";
+    auto lx = shared_lex(forFunc);
+    auto parsed = ParseToplevel(lx);
+    THEN("It is parsed") { REQUIRE(parsed != nullptr); }
+    parsed->print_tree(std::cerr, 0);
+  }
+}
+TEST_CASE("Multiple assignment", "[parser]") {
+  WHEN("Two things are assigned") {
+    std::string c = "a,b=1,2";
+    auto lx = shared_lex(c)->begin();
+    auto parsed = AssignmentAST::parse(lx);
+    THEN("It is parsed") { REQUIRE(parsed.has_value()); }
+    auto p = unwrap(parsed);
+    p->collapse();
+    p->print_tree(std::cout, 0);
+    THEN("The types and contents are correct") {
+      std::string correct[4][2] = {{"Variable Name", "a"},
+                                   {"Variable Name", "b"},
+                                   {"Constant", "1"},
+                                   {"Constant", "2"}};
+      int index = 0;
+      p->explore([&index, &correct](ASTNodeBase *t) {
+        if (t->is_leaf()) {
+          REQUIRE(t->what() == correct[index][0]);
+          REQUIRE(t->token->content == correct[index][1]);
+          index++;
+        }
+        return true;
+      });
+    }
+  }
+  WHEN("Two things are compound-assigned") {
+    std::string c = "a,b+=1,1";
+    auto lx = shared_lex(c);
+    auto parsed = AssignmentAST::parse(lx->begin());
+    THEN("It is parsed") { REQUIRE(parsed.has_value()); }
+    auto p = unwrap(parsed);
+    p->print_tree(std::cout, 0);
+    p->collapse();
+    THEN("It is correct") {
+      const char *vn = "Variable Name";
+      const std::string correct[][2] = {{vn, "a"}, {vn, "b"},
+                                        {vn, "a"}, {"Constant", "1"},
+                                        {vn, "b"}, {"Constant", "1"}};
+      int index = 0;
+      p->explore([&index, &correct](ASTNodeBase *t) {
+        if (t->is_leaf()) {
+          REQUIRE(correct[index][0] == t->what());
+          REQUIRE(correct[index][1] == t->token->content);
+          index++;
+        }
+        return true;
+      });
+    }
   }
 }

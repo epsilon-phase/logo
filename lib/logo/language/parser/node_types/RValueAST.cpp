@@ -8,8 +8,10 @@ ParseResult<RValueAST> RValueAST::parse(TokenStreamIterator start) {
     auto &[e, s] = expr.value();
     start = s;
     result->add_child(std::move(e));
-    if (start->type == Comma)
+    if (start.remaining() && start->type == Comma)
       start++;
+    else
+      break;
   }
   return Succeed(result, start);
 }

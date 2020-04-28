@@ -14,7 +14,15 @@ ParseResult<BlockAST> BlockAST::parse(TokenStreamIterator start) {
       auto [If, s] = std::move(IfS.value());
       result->add_child(std::move(If));
       start = s;
+    } else if (start->type == For) {
+      auto For = ForLoopAST::parse(start);
+      if (!For.has_value())
+        FAIL;
+      auto [F, s] = std::move(For.value());
+      result->add_child(std::move(F));
+      start = s;
     } else {
+
       auto r = StatementAST::parse(start);
       if (r.has_value()) {
         auto &[a, s] = r.value();

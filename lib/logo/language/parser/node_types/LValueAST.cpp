@@ -12,6 +12,8 @@ ParseResult<LValueAST> LValueAST::parse(TokenStreamIterator start) {
     start = s;
     if (start->type == Comma)
       start++;
+    else
+      break;
   }
   return Succeed(result, start);
 }

@@ -7,7 +7,7 @@ ParseResult<ExponentExpr> ExponentExpr::parse(TokenStreamIterator start) {
   auto &[a, s] = a1.value();
   result->add_child(std::move(a));
   start = s;
-  if (start->type == Exponent) {
+  if (start.remaining() && start->type == Exponent) {
     result->token = &(*start);
     auto a2 = ExponentExpr::parse(start + 1);
     if (!a2.has_value())

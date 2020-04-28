@@ -25,5 +25,6 @@ ParseResult<CallAST> CallAST::parse(TokenStreamIterator start) {
     if (start->type != ParenRight)
       start++;
   }
+  start++;
   return Succeed(result, start);
 }

@@ -77,7 +77,11 @@ namespace logo {
         this->position += i;
         return r;
       }
-      bool remaining() const { return parent->tokens.size() > this->position; }
+      unsigned int remaining() const {
+        return parent->tokens.size() > this->position
+                   ? parent->tokens.size() - position
+                   : 0;
+      }
 
     private:
       void skip_comment() {

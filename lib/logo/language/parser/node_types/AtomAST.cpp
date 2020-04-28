@@ -13,7 +13,7 @@ ParseResult<AtomAST> AtomAST::parse(TokenStreamIterator start) {
     if (start->type != ParenRight)
       FAIL;
     start++;
-  } else if ((start + 1)->type == BracketLeft) {
+  } else if (start->type == Identifier && (start + 1)->type == BracketLeft) {
     auto array = ArrayAccessAST::parse(start);
     if (!array.has_value())
       FAIL;

@@ -18,6 +18,8 @@ ParseResult<StatementAST> StatementAST::parse(TokenStreamIterator start) {
         FAIL;
       } else {
         auto &[c, s] = call.value();
+        result->add_child(std::move(c));
+        start = s;
       }
     } else if ((start + 1)->type == Equal || (start + 2)->type == Equal) {
       auto assign = AssignmentAST::parse(start);

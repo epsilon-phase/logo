@@ -1,4 +1,5 @@
 #include "../detail/ast_prelude.hpp"
+#include <cassert>
 static bool is_assignment(TokenStreamIterator s) {
   return s->type == Equal ||
          ((s + 1)->type == Equal &&
@@ -19,7 +20,8 @@ ParseResult<AssignmentAST> AssignmentAST::parse(TokenStreamIterator start) {
   Token *compoundType = &(*start);
   if (!is_assignment(start))
     FAIL;
-
+  if (start->type != Equal)
+    start++;
   start++;
   auto rhs = RValueAST::parse(start);
   if (!rhs.has_value())
@@ -28,33 +30,41 @@ ParseResult<AssignmentAST> AssignmentAST::parse(TokenStreamIterator start) {
   if (compoundType->type != Equal) {
     auto c2 = LValueAST::parse(start_copy);
     auto [copy, _] = std::move(c2.value());
-    switch (compoundType->type) {
-    case Plus:
-    case Minus: {
-      std::unique_ptr<AddSub> s = std::make_unique<AddSub>();
-      s->token = compoundType;
-      s->add_child(std::move(copy));
-      s->add_child(std::move(rside));
-    } break;
-    case Times:
-    case Divide:
-    case Modulo: {
-      std::unique_ptr<MultDiv> s = std::make_unique<MultDiv>();
-      s->token = compoundType;
-      s->add_child(std::move(copy));
-      s->add_child(std::move(rside));
-    } break;
-    case Exponent: {
-      std::unique_ptr<ExponentExpr> s = std::make_unique<ExponentExpr>();
-      s->token = compoundType;
-      s->add_child(std::move(copy));
-      s->add_child(std::move(rside));
-    } break;
-    default:
-      FAIL;
+    assert(rside->children.size() == copy->children.size());
+    for (int i = 0; i < copy->children.size(); i++) {
+      auto &c = copy->children[i];
+      auto &r = rside->children[i];
+      switch (compoundType->type) {
+      case Plus:
+      case Minus: {
+        std::unique_ptr<AddSub> s = std::make_unique<AddSub>();
+        s->token = compoundType;
+        s->add_child(std::move(c));
+        s->add_child(std::move(r));
+        rside->children[i] = std::move(s);
+      } break;
+      case Times:
+      case Divide:
+      case Modulo: {
+        std::unique_ptr<MultDiv> s = std::make_unique<MultDiv>();
+        s->token = compoundType;
+        s->add_child(std::move(c));
+        s->add_child(std::move(r));
+        rside->children[i] = std::move(s);
+      } break;
+      case Exponent: {
+        std::unique_ptr<ExponentExpr> s = std::make_unique<ExponentExpr>();
+        s->token = compoundType;
+        s->add_child(std::move(c));
+        s->add_child(std::move(r));
+        rside->children[i] = std::move(s);
+      } break;
+      default:
+        FAIL;
+      }
     }
-  } else
-    result->add_child(std::move(rside));
+  }
+  result->add_child(std::move(rside));
   start = fpos;
   return Succeed<AssignmentAST>(result, start);
 }

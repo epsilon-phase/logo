@@ -51,7 +51,9 @@ target_link_libraries(logo)
 
 
 add_subdirectory(lib/logo)
-
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  target_compile_options(logo PUBLIC "-fno-omit-frame-pointer" "-fsanitize=address")
+endif()
 if(BUILD_FUZZ)
   add_executable(logofuzz)
   target_link_libraries(logofuzz PRIVATE logo)
