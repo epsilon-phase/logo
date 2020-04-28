@@ -36,7 +36,6 @@ ParseResult<AtomAST> AtomAST::parse(TokenStreamIterator start) {
     auto &[nv, s] = r.value();
     result->add_child(std::move(nv));
     start = s;
-
   } else if (start->type == Number || start->type == String) {
     auto cl = ConstantLiteralAST::parse(start);
     auto &[c, s] = cl.value();

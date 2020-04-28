@@ -14,7 +14,9 @@ void ASTNodeBase::print_tree(std::ostream &o, int depth) const {
   for (const auto &i : children)
     i->print_tree(o, depth + 1);
 }
+bool ASTNodeBase::is_leaf() const { return children.empty(); }
 void ASTNodeBase::add_child(std::unique_ptr<ASTNodeBase> &&nb) {
+  *nb;
   nb->parent = this;
   children.emplace_back(std::move(nb));
 }
@@ -72,4 +74,14 @@ size_t ASTNodeBase::count_leaves() const {
   for (const auto &c : children)
     r += c->count_leaves();
   return r;
+}
+bool ASTNodeBase::explore(std::function<bool(ASTNodeBase *)> f) {
+  if (f(this)) {
+    for (auto &i : children)
+      if (!i->explore(f)) {
+        return false;
+      }
+    return true;
+  } else
+    return false;
 }

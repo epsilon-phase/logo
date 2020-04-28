@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
   std::string str((std::istreambuf_iterator<char>(t)),
                   std::istreambuf_iterator<char>());
   try {
-    auto lx = std::make_shared<logo::language::TranslationUnit>(LexString(str));
+    auto lx = logo::language::shared_lex(str);
     auto pt = parser::ParseToplevel(lx);
     for (const auto &i : lx->tokens) {
       std::cout << TokenToString(i.type) << std::endl;

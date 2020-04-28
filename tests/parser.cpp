@@ -63,7 +63,6 @@ TEST_CASE("Simple parses", "[parser]") {
               std::string("Variable declaration"));
       REQUIRE(c->children[1]->children[0]->children[0]->children.size() == 3);
     }
-    c->print_tree(std::cout, 0);
   }
 }
 TEST_CASE("Assignment tests", "[parser]") {
@@ -75,6 +74,28 @@ TEST_CASE("Assignment tests", "[parser]") {
     auto [tree, _] = std::move(parse.value());
     THEN("The tree has the correct number of leaves(3)") {
       REQUIRE(tree->count_leaves() == 3);
+    }
+    tree->collapse();
+    tree->print_tree(std::cout, 0);
+    THEN("it produces the right tree") {
+      tree->explore([](ASTNodeBase *t) {
+        if (t->is_leaf()) {
+          REQUIRE(t->what() == std::string("Variable Name"));
+          return false;
+        }
+        return true;
+      });
+    }
+    THEN("The leaves are in the correct order") {
+      std::vector<std::string> leaves = {"Variable Name", "Constant",
+                                         "Constant"};
+      auto iter = leaves.cbegin();
+      tree->explore([&iter](ASTNodeBase *node) {
+        if (!node->children.empty())
+          return true;
+        REQUIRE(*(iter++) == node->what());
+        return true;
+      });
     }
   }
 }
@@ -98,7 +119,7 @@ TEST_CASE("Expression tests", "[parser]") {
     e->collapse();
     THEN("Collapsed, it comes out to the correct sequence as well") {
       REQUIRE(e->what() == std::string("Expression"));
-      REQUIRE(e->children[0]->what() == std::string("Atom"));
+      REQUIRE(e->children[0]->what() == std::string("Constant"));
     }
   }
   WHEN("It consists of a simple arithmetic expression") {
@@ -109,12 +130,17 @@ TEST_CASE("Expression tests", "[parser]") {
     auto [e, _] = std::move(ex.value());
     e->collapse();
     THEN("It has two leaves") { REQUIRE(e->count_leaves() == 2); }
+    THEN("The two leaves are labelled properly") {
+      e->explore([](ASTNodeBase *t) {
+        if (t->is_leaf())
+          REQUIRE(t->what() == std::string("Constant"));
+        return true;
+      });
+    }
   }
   WHEN("A call is made") {
     const std::string call = "call(15)";
     auto lx = shared_lex(call);
-
-    list_tokens(*lx);
     REQUIRE(lx->tokens[0].content.data()[0] == lx->contents.c_str()[0]);
     auto ex = ExpressionAST::parse(lx->begin());
     THEN("It is parsed") { REQUIRE(ex.has_value()); }
@@ -122,5 +148,32 @@ TEST_CASE("Expression tests", "[parser]") {
     auto pre_collapse = e->tree_size();
     e->collapse();
     e->print_tree(std::cout, 0);
+  }
+}
+TEST_CASE("If statement", "[parser]") {
+  WHEN("An if statement alone is tested") {
+    const std::string s = "if 5 then\n"
+                          "a=a+1;\nendif";
+    auto lx = shared_lex(s);
+    auto p = IfElseAST::parse(lx->begin());
+    REQUIRE(p.has_value());
+    auto [If, _] = std::move(p.value());
+    If->collapse();
+    If->print_tree(std::cout, 0);
+  }
+  WHEN("An if statement is there") {
+    const std::string s = "function hello()\n"
+                          "if 5 then\n"
+                          "a=a+1;\n"
+                          "else\n"
+                          "a=a-2;\n"
+                          "endif\n"
+                          "endfunc";
+    auto lx = shared_lex(s);
+
+    auto p = ParseToplevel(lx);
+    REQUIRE(p != nullptr);
+    p->collapse();
+    p->print_tree(std::cout, 0);
   }
 }

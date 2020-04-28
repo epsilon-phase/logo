@@ -8,7 +8,8 @@ ParseResult<BooleanAST> BooleanAST::parse(TokenStreamIterator start) {
   auto [e, s] = std::move(e1.value());
   result->add_child(std::move(e));
   start = s;
-  if (start->type == LogicalAnd || start->type == LogicalOr) {
+  if (start.remaining() &&
+      (start->type == LogicalAnd || start->type == LogicalOr)) {
     result->token = &(*start);
     auto e2 = BooleanAST::parse(start + 1);
     if (!e2.has_value())

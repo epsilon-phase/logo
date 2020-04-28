@@ -1,5 +1,6 @@
 #pragma once
 #include "../ast.hpp"
+
 #ifdef PARSER_DEBUGGING
 #include <iostream>
 #endif
@@ -22,3 +23,11 @@ using namespace logo::language::tokens;
 #else
 #define FAIL return std::nullopt
 #endif
+#define REQSUCC(X)                                                             \
+  if (start->type != X)                                                        \
+    FAIL;
+#define REQPARSE(C, D)                                                         \
+  if (!C.has_value())                                                          \
+    FAIL;                                                                      \
+  start = std::get<1>(C.value());                                              \
+  auto D = std::get<0>(std::move(C.value()))

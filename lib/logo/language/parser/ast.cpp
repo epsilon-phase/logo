@@ -32,7 +32,8 @@ ParseResult<ParameterAST> ParameterAST::parse(TokenStreamIterator start) {
         FAIL;
       if (start->type == Comma)
         start++;
-    }
+    } else
+      FAIL;
   }
   if (start->type != ParenRight)
     FAIL;

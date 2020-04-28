@@ -2,7 +2,7 @@
 ParseResult<FunctionAST> FunctionAST::parse(TokenStreamIterator start) {
   auto result = std::make_unique<FunctionAST>();
 
-  if (start->type != Function || !start.remaining())
+  if (!start.remaining() || start->type != Function)
     FAIL;
   start++;
   if (start->type != Identifier) {

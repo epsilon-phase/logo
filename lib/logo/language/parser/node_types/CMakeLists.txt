@@ -8,6 +8,9 @@ target_sources(logo PUBLIC VariableDecAST.cpp
                            LValueAST.cpp
                            RValueAST.cpp
                            ArrayAccessAST.cpp
+                           IfElseAST.cpp
+                           WhileLoopAST.cpp
+                           ForLoopAST.cpp
                            AtomAST.cpp
                            BooleanAST.cpp
                            ComparisonAST.cpp

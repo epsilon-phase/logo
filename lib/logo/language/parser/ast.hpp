@@ -1,5 +1,6 @@
 #pragma once
 #include "../lexer/lexer.hpp"
+#include <functional>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -47,7 +48,8 @@ namespace logo {
          *   1. If it is not of a collapsible type, recurse into it
          *   2. Replace it with its only child
          *   3. If that child is collapsible the replace that with its only
-         *      child
+         *      child. Repeat until no longer true
+         *   4. Collapse that child
          * */
         void collapse();
         //! Print the tree to the given stream.
@@ -74,9 +76,16 @@ namespace logo {
         size_t count_leaves() const;
         //! Count the number of nodes overall in the tree
         size_t tree_size() const;
+        /**
+         * Traverse the tree, calling a function on each node in pre-order
+         * @param f The function to call
+         * */
+        bool explore(std::function<bool(ASTNodeBase *)>);
+        bool is_leaf() const;
 
       private:
-        //! returns true if the node has one child and is of a collapsible type,
+        //! returns true if the node has one child and is of a collapsible
+        //! type,
         bool can_collapse() const;
         // virtual void compile() const = 0;
       };
@@ -94,6 +103,7 @@ namespace logo {
       struct AtomAST : public ASTNodeBase {
         virtual ~AtomAST() {}
         virtual const char *what() const { return "Atom"; }
+        virtual bool collapsible() const { return true; }
         static ParseResult<AtomAST> parse(TokenStreamIterator start);
       };
       //! The base class for all binary operators.
@@ -113,22 +123,85 @@ namespace logo {
       struct ComparisonAST : public BinaryOpAST {
         virtual ~ComparisonAST() {}
         virtual const char *what() const { return "ComparisonExpr"; }
+        //! Parse it!
         static ParseResult<ComparisonAST> parse(TokenStreamIterator start);
       };
       struct AddSub : public BinaryOpAST {
         virtual ~AddSub() {}
         virtual const char *what() const { return "AddSub"; }
+        //! Parse it!
         static ParseResult<AddSub> parse(TokenStreamIterator start);
       };
       struct MultDiv : public BinaryOpAST {
         virtual ~MultDiv() {}
         virtual const char *what() const { return "MultDiv"; }
+        //! Parse it!
         static ParseResult<MultDiv> parse(TokenStreamIterator start);
       };
       struct ExponentExpr : public BinaryOpAST {
         virtual ~ExponentExpr() {}
         virtual const char *what() const { return "ExponentExpr"; }
+        //! Parse it!
         static ParseResult<ExponentExpr> parse(TokenStreamIterator start);
+      };
+      struct ControlFlowAST : public ASTNodeBase {
+        virtual ~ControlFlowAST(){};
+        virtual const char *what() const {
+          return "ControlFlow(Override me plox)";
+        }
+      };
+      //! If else AST
+      /**
+       * Bytecode stuff:
+       * 1. Condition Check
+       * 2. If true, don't jump, otherwise go to 4 if there's an else block, 5
+       *    otherwise
+       * 3. BLOCK
+       * 4. Else Block
+       * 5. The end
+       * */
+      struct IfElseAST : public ControlFlowAST {
+        virtual ~IfElseAST() {}
+        virtual const char *what() const { return "If-else"; }
+        static ParseResult<IfElseAST> parse(TokenStreamIterator start);
+      };
+      //! For loop
+      /**
+       * Bytecode stuffz:
+       * 1. Initial Assignment
+       * 2. Conditional check
+       * 3. Jump to end if not
+       * 4. The BLOCK
+       * 5. Update assignment
+       * 6. Jump to 2.
+       * */
+      struct ForLoopAST : public ControlFlowAST {
+        virtual ~ForLoopAST() {}
+        virtual const char *what() const { return "For loop"; }
+        static ParseResult<ForLoopAST> parse(TokenStreamIterator start);
+      };
+      /**
+       * Bytecode stuff:
+       * 1. Check
+       * 2. If false jump past 4
+       * 3. BLOCK
+       * 4. jump to 2
+       * */
+      struct WhileLoopAST : public ControlFlowAST {
+        virtual ~WhileLoopAST() {}
+        virtual const char *what() const { return "While loop"; }
+        static ParseResult<WhileLoopAST> parse(TokenStreamIterator start);
+      };
+      /**
+       * Bytecode stuff:
+       * 1. BLOCK
+       * 2. Check
+       * 3. Jump to 1 if true
+       * */
+      struct DoWhileAST : public ControlFlowAST {
+        virtual ~DoWhileAST() {}
+        virtual const char *what() const { return "DoWhile"; }
+        static ParseResult<DoWhileAST> parse(TokenStreamIterator start);
       };
       /**
        * \page Expression_Precedence
@@ -227,6 +300,12 @@ namespace logo {
         virtual ~FunctionAST() {}
         static ParseResult<FunctionAST> parse(TokenStreamIterator start);
         virtual const char *what() const { return "Function"; }
+      };
+      //! File node, File -> Function+
+      struct FileAST : public ASTNodeBase {
+        virtual ~FileAST() {}
+        static ParseResult<FileAST> parse(TokenStreamIterator start);
+        virtual const char *what() const { return "File"; }
       };
       /**
        * Parse the toplevel of the grammar, returning the AST.
