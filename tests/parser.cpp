@@ -13,8 +13,8 @@ static void list_tokens(const logo::language::TranslationUnit &tu) {
     std::cout << "'" << i.content << "' " << TokenToString(i.type) << std::endl;
 }
 template <typename T> std::unique_ptr<T> unwrap(ParseResult<T> &r) {
-  auto [a, b] = std::move(r.value());
-  return std::move(a);
+  auto [b, _] = std::move(r.value());
+  return std::move(b);
 }
 TEST_CASE("Simple parses", "[parser]") {
   WHEN("Empty function is parsed") {
@@ -113,9 +113,9 @@ TEST_CASE("Expression tests", "[parser]") {
     auto [e, s] = std::move(ex.value());
     e->print_tree(std::cerr, 0);
     THEN("It has the expected sequence") {
-      std::string correct[] = {"Expression", "BooleanExpr", "ComparisonExpr",
-                               "AddSub",     "MultDiv",     "ExponentExpr",
-                               "Atom"};
+      std::string correct[] = {"Expression",     "Not AST", "BooleanExpr",
+                               "ComparisonExpr", "AddSub",  "MultDiv",
+                               "ExponentExpr",   "Atom"};
       for (auto [i, ptr] = std::tuple{0, (ASTNodeBase *)e.get()};
            ptr->children.size() > 0; ptr = ptr->children[0].get(), i++) {
         REQUIRE(correct[i] == ptr->what());
@@ -268,5 +268,60 @@ TEST_CASE("Multiple assignment", "[parser]") {
         return true;
       });
     }
+  }
+  WHEN("The compound assignments are unbalanced") {
+    const std::string c = "a,b=1";
+    auto lx = shared_lex(c);
+    THEN("It does not parse") {
+      auto parsed = AssignmentAST::parse(lx->begin());
+      if (parsed.has_value()) {
+        std::get<0>(parsed.value())->print_tree(std::cerr, 0);
+      }
+      REQUIRE(!parsed.has_value());
+    }
+  }
+  WHEN("An assignment lacks an right hand value") {
+    const std::string c = "a=;";
+    auto lx = shared_lex(c);
+    THEN("It does not parse") {
+      auto parsed = AssignmentAST::parse(lx->begin());
+      REQUIRE_FALSE(parsed.has_value());
+    }
+  }
+}
+TEST_CASE("Return expressions", "[parser]") {
+
+  WHEN("It is in a simple expression") {
+    const std::string r = "function a() return 1,2,3,4,5; endfunc";
+    auto lx = shared_lex(r);
+    auto parsed = ParseToplevel(lx);
+    THEN("It is parsed") { REQUIRE(parsed != nullptr); }
+  }
+  WHEN("It is tested independently") {
+    const std::string r = "return 1,2,3,4";
+    auto lx = shared_lex(r);
+    auto ret = ReturnAST::parse(lx->begin());
+    THEN("It is parsed") { REQUIRE(ret.has_value()); }
+    std::get<0>(ret.value())->print_tree(std::cout, 0);
+  }
+  WHEN("It is tested independently without an expression") {
+    const std::string r = "return";
+    auto lx = shared_lex(r);
+    auto ret = ReturnAST::parse(lx->begin());
+    THEN("It is parsed") { REQUIRE(ret.has_value()); }
+    std::get<0>(ret.value())->print_tree(std::cout, 0);
+  }
+
+  WHEN("IT has no expression") {
+    const std::string r = "function a() return;endfunc";
+    auto lx = shared_lex(r);
+    auto parsed = ParseToplevel(lx);
+    THEN("It is parsed") { REQUIRE(parsed != nullptr); }
+  }
+  WHEN("It has an invalid expression") {
+    const std::string r = "function a() return %;endfunc";
+    auto lx = shared_lex(r);
+    auto parsed = ParseToplevel(lx);
+    THEN("It is not parsed") { REQUIRE(parsed == nullptr); }
   }
 }

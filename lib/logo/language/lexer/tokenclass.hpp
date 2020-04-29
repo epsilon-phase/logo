@@ -19,6 +19,7 @@ namespace logo {
        * Bitmasked enumerator for the semantics that tokens have.
        * */
       enum class TokenClass : unsigned {
+        none = 0,
         //! No class, probably not a good thing if this is returned
         no_class = 0,
         //! Signifies the start of a control block
@@ -95,6 +96,14 @@ namespace logo {
         using underlying = typename std::underlying_type<Enum>::type;
         a = a ^ b;
         return a;
+      }
+      template <typename Enum>
+      typename std::enable_if<
+          std::is_enum<Enum>::value &&
+              __detail::EnableBitmaskedOperators<Enum>::enable,
+          bool>::type
+      any(Enum e) {
+        return e != Enum::none;
       }
       TokenClass classify_token(TokenType t);
     } // namespace tokens

@@ -1,9 +1,14 @@
+#include "../../lexer/tokenclass.hpp"
 #include "../detail/ast_prelude.hpp"
 #include <iostream>
 ParseResult<AtomAST> AtomAST::parse(TokenStreamIterator start) {
   auto result = std::make_unique<AtomAST>();
+  auto tc = classify_token(start->type);
+  if (any(tc & TokenClass::operates) ||
+      any(tc & (TokenClass::control_flow_end | TokenClass::control_flow_start)))
+    FAIL;
   if (start->type == ParenLeft) {
-    auto expr = ExpressionAST::parse(start);
+    auto expr = ExpressionAST::parse(start + 1);
     if (!expr.has_value())
       FAIL;
     auto &[ex, s] = expr.value();
@@ -42,6 +47,7 @@ ParseResult<AtomAST> AtomAST::parse(TokenStreamIterator start) {
     result->add_child(std::move(c));
     start = s;
   } else {
+    std::cerr << "NOTHING " << TokenToString(start->type) << std::endl;
   }
   return Succeed(result, start);
 }

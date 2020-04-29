@@ -27,10 +27,12 @@ ParseResult<AssignmentAST> AssignmentAST::parse(TokenStreamIterator start) {
   if (!rhs.has_value())
     FAIL;
   auto &[rside, fpos] = rhs.value();
+  if (rside->children.size() != result->children[0]->children.size())
+    FAIL;
   if (compoundType->type != Equal) {
     auto c2 = LValueAST::parse(start_copy);
     auto [copy, _] = std::move(c2.value());
-    assert(rside->children.size() == copy->children.size());
+
     for (int i = 0; i < copy->children.size(); i++) {
       auto &c = copy->children[i];
       auto &r = rside->children[i];

@@ -114,6 +114,16 @@ namespace logo {
         virtual bool collapsible() const { return true; }
         static ParseResult<AtomAST> parse(TokenStreamIterator start);
       };
+      struct UnaryOpAST : public ASTNodeBase {
+        virtual ~UnaryOpAST() {}
+        virtual const char *what() const { return "Unaryop(Override me plox"; }
+        virtual bool collapsible() const { return token == nullptr; }
+      };
+      struct NotAST : public UnaryOpAST {
+        virtual ~NotAST() {}
+        virtual const char *what() const { return "Not AST"; }
+        static ParseResult<NotAST> parse(TokenStreamIterator start);
+      };
       //! The base class for all binary operators.
       struct BinaryOpAST : public ASTNodeBase {
         virtual ~BinaryOpAST() {}
@@ -121,7 +131,6 @@ namespace logo {
           return "BinaryOp(Override me plox)";
         }
         virtual bool collapsible() const { return true; }
-        void collapse();
       };
       struct BooleanAST : public BinaryOpAST {
         virtual ~BooleanAST() {}
@@ -315,6 +324,11 @@ namespace logo {
         virtual ~FileAST() {}
         static ParseResult<FileAST> parse(TokenStreamIterator start);
         virtual const char *what() const { return "File"; }
+      };
+      struct ReturnAST : public ASTNodeBase {
+        virtual ~ReturnAST() {}
+        static ParseResult<ReturnAST> parse(TokenStreamIterator start);
+        virtual const char *what() const { return "Return "; }
       };
       /**
        * Parse the toplevel of the grammar, returning the AST.

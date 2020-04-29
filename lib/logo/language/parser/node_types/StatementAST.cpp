@@ -11,6 +11,13 @@ ParseResult<StatementAST> StatementAST::parse(TokenStreamIterator start) {
       result->add_child(std::move(va));
     }
 
+  } else if (start->type == Return) {
+    auto r = ReturnAST::parse(start);
+    if (!r.has_value())
+      FAIL;
+    auto [ret, s] = std::move(r.value());
+    start = s;
+    result->add_child(std::move(ret));
   } else if (start->type == Identifier) {
     if ((start + 1)->type == ParenLeft) {
       auto call = CallAST::parse(start);

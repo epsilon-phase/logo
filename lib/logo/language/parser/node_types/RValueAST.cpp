@@ -13,5 +13,7 @@ ParseResult<RValueAST> RValueAST::parse(TokenStreamIterator start) {
     else
       break;
   }
+  if (result->children.empty())
+    FAIL;
   return Succeed(result, start);
 }

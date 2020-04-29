@@ -18,4 +18,7 @@ target_sources(logo PUBLIC VariableDecAST.cpp
                            MultDiv.cpp
                            ExponentExpr.cpp
                            CallAST.cpp
-                           VariableNameAST.cpp)
+                           VariableNameAST.cpp
+                           FileAST.cpp
+                           NotAST.cpp
+                           ReturnAST.cpp)
