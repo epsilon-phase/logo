@@ -6,7 +6,7 @@ ParseResult<ExpressionAST> ExpressionAST::parse(TokenStreamIterator start) {
       any(c & TokenClass::control_flow_end))
     FAIL;
   auto result = std::make_unique<ExpressionAST>();
-  auto add = NotAST::parse(start);
+  auto add = BooleanAST::parse(start);
   if (!add.has_value())
     FAIL;
   auto &[a, s] = add.value();

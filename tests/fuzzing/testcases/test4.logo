@@ -1,0 +1,10 @@
+function main()
+  a = array(1,5);# Makes an array with 5 spaces all filled with 1
+  for i=0;i<5;i+=1; do
+    for j=0;j<i;j+=1 do
+      a[i]=a[i]+a[j];
+    done
+  enddo
+  print(a[4]);
+endfunc
+  

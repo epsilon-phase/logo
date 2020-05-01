@@ -14,7 +14,7 @@ ParseResult<NotAST> NotAST::parse(TokenStreamIterator start) {
     result->add_child(std::move(nested));
     start = s;
   } else {
-    auto boolean = BooleanAST::parse(start);
+    auto boolean = AtomAST::parse(start);
     if (!boolean.has_value())
       FAIL;
     auto [b, s] = std::move(boolean.value());

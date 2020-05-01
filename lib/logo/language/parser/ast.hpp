@@ -328,7 +328,7 @@ namespace logo {
       struct ReturnAST : public ASTNodeBase {
         virtual ~ReturnAST() {}
         static ParseResult<ReturnAST> parse(TokenStreamIterator start);
-        virtual const char *what() const { return "Return "; }
+        virtual const char *what() const { return "Return"; }
       };
       /**
        * Parse the toplevel of the grammar, returning the AST.

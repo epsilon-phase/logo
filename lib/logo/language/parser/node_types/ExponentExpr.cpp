@@ -1,7 +1,7 @@
 #include "../detail/ast_prelude.hpp"
 ParseResult<ExponentExpr> ExponentExpr::parse(TokenStreamIterator start) {
   auto result = std::make_unique<ExponentExpr>();
-  auto a1 = AtomAST::parse(start);
+  auto a1 = NotAST::parse(start);
   if (!a1.has_value())
     FAIL;
   auto &[a, s] = a1.value();

@@ -5,10 +5,13 @@ ParseResult<ArrayAccessAST> ArrayAccessAST::parse(TokenStreamIterator start) {
   if (start->type != Identifier) {
     FAIL;
   }
+  // Limited utility here, since it can't handle indirection, afaik
+  // But it's better to have a shitty system than a completely lacking one.
   result->token = &(*start);
+  start++;
   if (start->type != BracketLeft)
     FAIL;
-  while (start->type == BracketLeft) {
+  while (start.remaining() && start->type == BracketLeft) {
     auto pstart = start;
     pstart++;
     auto expr = ExpressionAST::parse(pstart);

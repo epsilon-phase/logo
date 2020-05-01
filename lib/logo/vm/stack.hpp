@@ -1,37 +1,45 @@
 #pragma once
-#include <variant>
-#include <string>
-#include <vector>
+#include <memory>
 #include <optional>
+#include <string>
 #include <unordered_map>
-namespace logo{
-    namespace vm{
-        using String=std::string;
-        using Number=double;
-        struct Array;
-        /**
-         * Evidently necessary in order to support recursive variants
-         */
-        template<typename T> struct recursive_wrapper{
-            recursive_wrapper(T t_){t.emplace_back(std::move(t_));}
-            operator const T&() const {return t.front;}
-            std::optional<T> t;
-        };
-        using stackcell = std::variant<String,Number,recursive_wrapper<Array>>;
-        /**
-         * Structure providing array support to the vm
-         * */
-        struct Array{
-            std::vector<stackcell> data;
-            void setItem(size_t index,const stackcell &sc);
-        };
-        /**
-         * this 'logo' implementation is stack based. It has a variable file for each function's scope and it maintains it for at *least* that much 
-         * */
-        struct Stack{
-            Stack(size_t variable_count);
-            std::vector<stackcell> contents;
-            std::vector<stackcell> variables;
-        };
-    }
-}
+#include <variant>
+#include <vector>
+namespace logo {
+  namespace vm {
+    using String = std::string;
+    using Number = double;
+    struct Array;
+    using stackcell = std::variant<std::monostate, String, Number,
+                                   std::optional<std::shared_ptr<Array>>>;
+
+    bool operator==(const stackcell &, const stackcell &);
+    bool operator!=(const stackcell &, const stackcell &);
+    bool operator<(const stackcell &, const stackcell &);
+    bool IsNumber(const stackcell &);
+    bool IsString(const stackcell &);
+    bool IsNull(const stackcell &);
+    bool IsArray(const stackcell &);
+    /**
+     * Structure providing array support to the vm
+     * */
+    struct Array {
+      std::vector<stackcell> data;
+      void setItem(size_t index, const stackcell &sc);
+    };
+    /**
+     * this 'logo' implementation is stack based. It has a variable file for
+     * each function's scope and it maintains it for at *least* that much
+     * */
+    struct Stack {
+      Stack();
+      std::vector<stackcell> contents;
+      std::array<stackcell, 256> variables;
+      Stack *parent = nullptr;
+    };
+    struct ProgramState {
+      std::vector<Stack> currentStack;
+      std::vector<size_t> execution_ptr;
+    };
+  } // namespace vm
+} // namespace logo

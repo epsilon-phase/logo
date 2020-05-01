@@ -113,9 +113,9 @@ TEST_CASE("Expression tests", "[parser]") {
     auto [e, s] = std::move(ex.value());
     e->print_tree(std::cerr, 0);
     THEN("It has the expected sequence") {
-      std::string correct[] = {"Expression",     "Not AST", "BooleanExpr",
-                               "ComparisonExpr", "AddSub",  "MultDiv",
-                               "ExponentExpr",   "Atom"};
+      std::string correct[] = {"Expression", "BooleanExpr", "ComparisonExpr",
+                               "AddSub",     "MultDiv",     "ExponentExpr",
+                               "Not AST",    "Atom"};
       for (auto [i, ptr] = std::tuple{0, (ASTNodeBase *)e.get()};
            ptr->children.size() > 0; ptr = ptr->children[0].get(), i++) {
         REQUIRE(correct[i] == ptr->what());
@@ -323,5 +323,25 @@ TEST_CASE("Return expressions", "[parser]") {
     auto lx = shared_lex(r);
     auto parsed = ParseToplevel(lx);
     THEN("It is not parsed") { REQUIRE(parsed == nullptr); }
+  }
+}
+TEST_CASE("ArrayAccess", "[parser]") {
+  WHEN("An array access exists") {
+    const std::string array = "a[5]";
+    auto lx = shared_lex(array);
+    list_tokens(*lx);
+    auto parsed = ArrayAccessAST::parse(lx->begin());
+    THEN("It is found") { REQUIRE(parsed.has_value()); }
+    auto [array_acc, _] = std::move(parsed.value());
+  }
+  WHEN("Many accesses are nested") {
+    const std::string array = "a[1][2][3]";
+    auto lx = shared_lex(array);
+    auto parsed = ArrayAccessAST::parse(lx->begin());
+    THEN("It is found") { REQUIRE(parsed.has_value()); }
+    auto [array_acc, _] = std::move(parsed.value());
+    THEN("It has the right number of children") {
+      REQUIRE(array_acc->children.size() == 3);
+    }
   }
 }

@@ -37,6 +37,10 @@ TokenClass logo::language::tokens::classify_token(TokenType t) {
   case Then:
     result |= tc::control_flow_start;
     break;
+  case Number:
+  case String:
+    result |= tc::raw_value;
+    break;
   default:
     break;
   }
