@@ -1,4 +1,5 @@
 #include "../detail/ast_prelude.hpp"
+#include <iostream>
 ParseResult<FunctionAST> FunctionAST::parse(TokenStreamIterator start) {
   auto result = std::make_unique<FunctionAST>();
 
@@ -29,12 +30,40 @@ ParseResult<FunctionAST> FunctionAST::parse(TokenStreamIterator start) {
 }
 void FunctionAST::finish() {
   const std::string vn = "Variable Name";
+  const std::string cn = "Constant";
+  const std::string pn = "Parameter Declaration";
   explore([&](ASTNodeBase *t) {
-    if (t->what() == vn) {
+    if (t->what() == vn || t->what() == pn) {
       auto tname = std::string(t->token->content);
       if (local_symbols.find(tname) == local_symbols.end())
         local_symbols[tname] = local_symbols.size();
+    } else if (t->what() == cn) {
+      auto cname = std::string(t->token->content);
+      if (constants.find(cname) == constants.end()) {
+        constants[cname] = constants.size();
+      }
     }
     return true;
   });
+}
+void FunctionAST::print_tree(std::ostream &o, int depth) const {
+  auto indent = std::string(' ', depth);
+  o << indent << what() << std::endl;
+  if (!local_symbols.empty()) {
+    o << indent << " "
+      << "Variables:[\n";
+    for (const auto &[p, i] : local_symbols) {
+      o << indent << " " << i << "='" << p << "',\n";
+    }
+    o << indent << "]\n";
+  }
+  if (!constants.empty()) {
+    o << indent << "constants:[\n";
+    for (const auto &[p, i] : constants) {
+      o << indent << " " << i << "='" << p << "',\n";
+    }
+    o << indent << "]\n";
+  }
+  for (const auto &child : children)
+    child->print_tree(o, depth + 1);
 }

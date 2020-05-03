@@ -16,7 +16,9 @@ int main(int argc, char **argv) {
   if (p == nullptr) {
     std::cerr << "Could not parse" << std::endl;
     return 1;
-  } else
+  } else {
+    p->finish();
     p->print_tree(std::cout, 0);
+  }
   return 0;
 }

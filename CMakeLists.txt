@@ -23,6 +23,8 @@ option(LOGO_DEBUG_LEXER "Build the lexer with some print statements that might b
        OFF)
 option(LOGO_SANITIZE "Build the library with the address sanitizer." OFF)
 option(BUILD_WITH_COVERAGE "Build with coverage" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_BENCHMARKS "Build and run benchmarks when testing" OFF
+                                        "BUILD_TESTS" OFF)
 #RAGEL_TARGET(logo2 ${CMAKE_CURRENT_SOURCE_DIR}/lib/logo/language/lexer/lexer2.rl
 #             ${CMAKE_SOURCE_DIR}/lib/logo/language/lexer/lexer2.cpp)
 add_library(logo STATIC ${RAGEL_logo2_OUTPUTS})

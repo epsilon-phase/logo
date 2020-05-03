@@ -21,8 +21,7 @@ namespace logo {
         // Comparison
         //! The less than (or equals!) operator
         /**
-         * Takes the form [Inclusive] A B
-         * It is equivalent to >= if Inclusive is set to 1.
+         * Takes the form (1) A B
          * If the comparison is false, then it skips over the next instruction
          *
          * So
@@ -31,9 +30,9 @@ namespace logo {
          *   print(a)
          * endif
          * ```
-         * turns into
          * ```
-         * 00 LT 0 R0 R1
+         * turns into
+         * 00 LT 1 R0 R1
          * 01 JMP 0 05 ;The 0 is unused
          * 02 GET_GLOBAL R3 K1
          * 03 MOVE R4 R1
@@ -42,11 +41,11 @@ namespace logo {
          * ```
          * */
         LT,
-        //! The greater than operator
+        //! The Less than or equal operator `>=`
         /**
-         * @see LT for a better description of how this works
+         * @see LT for how this works
          * */
-        GT,
+        LE,
         EQ,
         NEQ,
         //! Is the value truthy??
@@ -69,7 +68,7 @@ namespace logo {
          *
          * Further experimentation suggests that the range of results is stored
          * over the registers used in the call.
-         * ```
+         * ```lua
          * function ab(a,b,c)
          *   return a,b,c
          * end
@@ -101,12 +100,30 @@ namespace logo {
         LoadK,
         //! Move one register's contents to another
         /**
-         * Two argument register, So the LargeOp format, but the second
-         * argument is just a register that is copied into the first
+         * Two argument register, So the @see Bytecode::largeop format, but the
+         * second argument is just a register that is copied into the first
          * */
-        Move
+        Move,
       };
     }
+    //! Bytecode that hasn't been through register reassignment
+    //! Too large to use directly
+    struct ByteCodeCandidate {
+      using uint = uint32_t;
+      union {
+        struct {
+          uint opcode;
+          uint dest;
+          uint op1;
+          uint op2;
+        } normal;
+        struct {
+          uint opcode;
+          uint dest;
+          uint addr;
+        } largeop;
+      };
+    };
     /**
      * This is the bytecode structure. It is heavily informed by the way that
      * Lua works 😸️

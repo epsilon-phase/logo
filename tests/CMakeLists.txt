@@ -1,4 +1,7 @@
-add_executable(logo_test main.cpp turtle.cpp lexer.cpp tokens.cpp lexer2.cpp parser.cpp)
+add_executable(logo_test main.cpp turtle.cpp lexer.cpp tokens.cpp lexer2.cpp parser.cpp vm.cpp)
+if(BUILD_BENCHMARKS)
+  target_compile_definitions(logo_test PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING=1)
+endif()
 target_link_libraries(logo_test logo)
 target_include_directories(logo_test PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 add_test(logo_test ${CMAKE_CURRENT_BINARY_DIR}/logo_test)

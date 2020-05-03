@@ -57,7 +57,7 @@ namespace logo {
          * @param o The output stream
          * @param depth The depth
          * */
-        void print_tree(std::ostream &, int depth) const;
+        virtual void print_tree(std::ostream &, int depth) const;
         /**
          * Produce a graphviz file representing the syntax tree and print to the
          * stream
@@ -315,9 +315,11 @@ namespace logo {
       //! Function node
       struct FunctionAST : public ASTNodeBase {
         virtual ~FunctionAST() {}
+        std::unordered_map<std::string, unsigned int> constants;
         static ParseResult<FunctionAST> parse(TokenStreamIterator start);
         virtual const char *what() const { return "Function"; }
         virtual void finish();
+        virtual void print_tree(std::ostream &, int depth) const;
       };
       //! File node, File -> Function+
       struct FileAST : public ASTNodeBase {
