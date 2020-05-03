@@ -20,22 +20,53 @@ std::ostream &operator<<(std::ostream &os, logo::vm::Number const &value) {
     os << value.fp;
   return os;
 }
-TEST_CASE("Stack cell") {
+TEST_CASE("Numbers") {
   using namespace logo::vm;
   Number a, b, c;
-  REQUIRE(sizeof(Number) == sizeof(double));
-  a.fp = std::nan("");
-  REQUIRE(a.Integral.exponent == 0b11111111111);
-  REQUIRE(a.isInt());
-  b = Number::FromInt(3);
-  REQUIRE(b.isInt());
-  c = Number::fromFloat(5.0);
-  a = b + c;
-  REQUIRE(b.Integral.i == 3);
-  REQUIRE(c.fp == 5.0);
-  REQUIRE(!a.isInt());
-  REQUIRE(a.fp == 8.0);
-  REQUIRE(a == 8);
+  WHEN("numbers are instantiated Declared") {
+    THEN("They are of the right size") {
+      REQUIRE(sizeof(Number) == sizeof(double));
+    }
+    THEN("And so are the doubles") { REQUIRE(sizeof(double) == 8); }
+  }
+  WHEN("Numbers are added") {
+
+    THEN("They are of the appropriate format") {
+      a.fp = std::nan("");
+      REQUIRE(a.Integral.exponent == 0b11111111111);
+      REQUIRE(a.isInt());
+    }
+
+    THEN("They are not converted to doubles except if necessary") {
+      b = Number::FromInt(3);
+      REQUIRE(b.isInt());
+    }
+    THEN("They are added properly") {
+      c = Number::fromFloat(5.0);
+      a = b + c;
+      REQUIRE(b.Integral.i == 3);
+      REQUIRE(c.fp == 5.0);
+      REQUIRE(!a.isInt());
+      REQUIRE(a.fp == 8.0);
+      REQUIRE(a == 8);
+    }
+  }
+  WHEN("Numbers are multiplied") {
+    a = Number::FromInt(5);
+    b = Number::FromInt(2);
+    auto c = a * b;
+    THEN("They are correct") { REQUIRE(c == 10); }
+    THEN("They do not become doubles unnecessarily") { REQUIRE(c.isInt()); }
+    b = Number::fromFloat(2.5);
+    THEN("THey become floats as necessary") {
+      c = a * b;
+      REQUIRE(c == 12.5);
+    }
+  }
+  WHEN("Numbers are too big to be integers") {
+    a = Number::FromInt(1L << 53);
+    REQUIRE_FALSE(a.isInt());
+  }
 }
 logo::vm::Number fibonacci_iter(logo::vm::Number n) {
   using namespace logo::vm;
