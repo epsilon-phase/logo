@@ -20,8 +20,11 @@ namespace logo {
     struct Number {
       Number();
       //! Implicit promotion is an asshole
-      static Number FromInt(int64_t);
+      static Number fromInt(int64_t);
+      static Number FromInt(int64_t i) { return fromInt(i); }
+      static Number fi(int64_t i) { return FromInt(i); }
       static Number fromFloat(double);
+      static Number ff(double i) { return fromFloat(i); }
       Number(const Number &a) {
         if (a.isInt()) {
           setInt();

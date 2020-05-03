@@ -10,9 +10,8 @@ ParseResult<ForLoopAST> ForLoopAST::parse(TokenStreamIterator start) {
   REQSUCC(Semicolon);
   auto condition = ExpressionAST::parse(start + 1);
   REQPARSE(condition, cond);
-  cond->print_tree(std::cerr, 0);
   result->add_child(std::move(cond));
-  std::cerr << "Left on " << TokenToString(start->type) << std::endl;
+
   REQSUCC(Semicolon);
 
   auto update = AssignmentAST::parse(start + 1);

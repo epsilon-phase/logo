@@ -4,8 +4,9 @@ project(logoaway VERSION 0.0.0
   LANGUAGES C CXX)
 include(CMakeDependentOption)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
-INCLUDE(${CMAKE_SOURCE_DIR}/cmake_modules/CodeCoverage.cmake)
+
 if(BUILD_WITH_COVERAGE)
+  INCLUDE(${CMAKE_SOURCE_DIR}/cmake_modules/CodeCoverage.cmake)
   APPEND_COVERAGE_COMPILER_FLAGS()
 endif()
 find_package(RAGEL 6.10 REQUIRED)
@@ -16,6 +17,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POLICY_DEFAULT_CMP0069 NEW) #enable interprocedural optimization for all projects
 set(BUILD_SHARED_LIBS OFF)
 option(BUILD_TESTS "Build tests of logo runner" OFF)
+CMAKE_DEPENDENT_OPTION(PRINT_DURING_TESTS "Print extraneous output during tests" OFF
+                                          "BUILD_TESTS" OFF)
 option(BUILD_LOGO_DOCS "Build the docs" OFF)
 option(BUILD_FUZZ "Build fuzzed executable" OFF)
 option(BUILD_LOGO_GUI "Build Gui executable" OFF)
@@ -23,6 +26,7 @@ option(LOGO_DEBUG_LEXER "Build the lexer with some print statements that might b
        OFF)
 option(LOGO_SANITIZE "Build the library with the address sanitizer." OFF)
 option(BUILD_WITH_COVERAGE "Build with coverage" OFF)
+option(BUILD_FOR_PACKAGE "Build for packaging" OFF)
 CMAKE_DEPENDENT_OPTION(BUILD_BENCHMARKS "Build and run benchmarks when testing" OFF
                                         "BUILD_TESTS" OFF)
 find_program(CCACHE_program ccache)
@@ -49,6 +53,10 @@ if(CCACHE_program)
         set(CMAKE_C_COMPILER_LAUNCHER   "${CMAKE_BINARY_DIR}/launch-c")
         set(CMAKE_CXX_COMPILER_LAUNCHER "${CMAKE_BINARY_DIR}/launch-cxx")
     endif()
+endif()
+if((${CMAKE_BUILD_TYPE} STREQUAL "Release" OR ${CMAKE_BUILD_TYPE} STREQUAL MinSizeRel) AND NOT BUILD_FOR_PACKAGE)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native -march=native")
 endif()
 #RAGEL_TARGET(logo2 ${CMAKE_CURRENT_SOURCE_DIR}/lib/logo/language/lexer/lexer2.rl
 #             ${CMAKE_SOURCE_DIR}/lib/logo/language/lexer/lexer2.cpp)

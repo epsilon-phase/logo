@@ -3,6 +3,13 @@
 #include <logo/errors/syntaxexception.hpp>
 #include <logo/language/lexer/lexer.hpp>
 #include <string>
+#ifdef TEST_PRINTING
+#define PRINT_ERROR(X) std::cerr << X
+#define PRINT_OUT(X) std::cout << X
+#else
+#define PRINT_ERROR(X)
+#define PRINT_OUT(X)
+#endif
 using namespace logo::language;
 using namespace logo::language::tokens;
 static void list_tokens(const logo::language::TranslationUnit &);
@@ -15,7 +22,7 @@ TEST_CASE("lex2 can find anything", "[lex2]") {
     try {
       lex2(tu);
     } catch (const logo::error::SyntaxException &se) {
-      std::cerr << se.get_context() << std::endl;
+      PRINT_ERROR(<< se.get_context() << std::endl);
       throw se;
     }
     if (tu.tokens.size() != 1)
@@ -132,7 +139,7 @@ TEST_CASE("Comments", "[lex2]") {
         REQUIRE(tu.tokens[1].content == "Right?");
       }
     } catch (logo::error::SyntaxException &s) {
-      std::cout << s.get_context() << std::endl;
+      PRINT_OUT(<< s.get_context() << std::endl);
       throw s;
     }
   }
@@ -146,7 +153,8 @@ TEST_CASE("Comments", "[lex2]") {
         REQUIRE(tu.tokens[0].type == Comment);
       }
     } catch (logo::error::SyntaxException &s) {
-      std::cout << "On line " << s.line << ": " << s.get_context() << std::endl;
+      PRINT_OUT(<< "On line " << s.line << ": " << s.get_context()
+                << std::endl);
       throw s;
     }
   }
@@ -154,5 +162,6 @@ TEST_CASE("Comments", "[lex2]") {
 static void list_tokens(const logo::language::TranslationUnit &tu) {
   using namespace logo::language::tokens;
   for (const auto &i : tu.tokens)
-    std::cout << "'" << i.content << "' " << TokenToString(i.type) << std::endl;
+    PRINT_OUT(<< "'" << i.content << "' " << TokenToString(i.type)
+              << std::endl);
 }

@@ -3,6 +3,13 @@
 #include <iostream>
 #include <logo/language/lexer/lexer.hpp>
 #include <string>
+#ifdef TEST_PRINTING
+#define PRINT_ERROR(X) std::cerr << X
+#define PRINT_OUT(X) std::cout << X
+#else
+#define PRINT_ERROR(X)
+#define PRINT_OUT(X)
+#endif
 using namespace logo::language;
 using namespace logo::language::tokens;
 
@@ -36,7 +43,7 @@ TEST_CASE("Keywords are parsed", "[lexer]") {
     auto lx = shared_lex(func);
     if (lx->tokens.size() != 2) {
       for (const auto &i : lx->tokens) {
-        std::cout << i.content << " = " << TokenToString(i.type) << std::endl;
+        PRINT_OUT(<< i.content << " = " << TokenToString(i.type) << std::endl);
       }
     }
     THEN("The correct number is found") {
@@ -53,10 +60,12 @@ TEST_CASE("Keywords are parsed", "[lexer]") {
     auto lx = shared_lex(control_flow);
     THEN("They are all found") {
       if (lx->tokens.size() != 9) {
+#ifdef TEST_PRINTING
         for (const auto &i : lx->tokens) {
           std::cout << "'" << i.content << "'" << TokenToString(i.type)
                     << std::endl;
         }
+#endif
       }
       REQUIRE(lx->tokens.size() == 9);
     }
@@ -66,8 +75,10 @@ TEST_CASE("Keywords are parsed", "[lexer]") {
 
       for (int i = 0; i < 8; i++) {
         if (lx->tokens[i].type != correct_ids[i]) {
+#ifdef TEST_PRINTING
           std::cout << "'" << lx->tokens[i].content << "' "
                     << lx->tokens[i].type << std::endl;
+#endif
         }
         REQUIRE(lx->tokens[i].type == correct_ids[i]);
       }
@@ -85,11 +96,13 @@ TEST_CASE("Keywords are parsed", "[lexer]") {
     THEN("They are correctly identified") {
       for (int i = 0; i < 15; i++) {
         if (lx->tokens[i].type != desired[i]) {
+#ifdef TEST_PRINTING
           std::cout << "'" << lx->tokens[i].content << "' Misidentified as "
                     << tokens::TokenToString(lx->tokens[i].type) << std::endl
                     << "Try looking in lib/logo/language/lexer/lexer2.rl or "
                        "lib/logo/language/lexer/lexer.cpp"
                     << std::endl;
+#endif
         }
         REQUIRE(lx->tokens[i].type == desired[i]);
       }

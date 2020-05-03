@@ -15,7 +15,7 @@ ParseResult<VariableDecAST> VariableDecAST::parse(TokenStreamIterator start) {
       FAIL;
     auto c = std::make_unique<VariableNameAST>();
     c->token = &(*start);
-    std::cerr << "Got variable " << start->content << std::endl;
+
     result->add_child(std::move(c));
     start++;
     if (start->type == Comma)

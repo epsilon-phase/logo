@@ -4,13 +4,20 @@
 #include <iostream>
 #include <logo/language/parser/ast.hpp>
 #include <memory>
+#ifdef TEST_PRINTING
+#define PRINT_ERROR(X) std::cerr << X
+#define PRINT_OUT(X) std::cout << X
+#else
+#define PRINT_ERROR(X)
+#define PRINT_OUT(X)
+#endif
 using namespace logo::language;
 using namespace logo::language::tokens;
 using namespace logo::language::parser;
 static void list_tokens(const logo::language::TranslationUnit &tu) {
   using namespace logo::language::tokens;
   for (const auto &i : tu.tokens)
-    std::cout << "'" << i.content << "' " << TokenToString(i.type) << std::endl;
+    PRINT_OUT("'" << i.content << "' " << TokenToString(i.type) << std::endl);
 }
 template <typename T> std::unique_ptr<T> unwrap(ParseResult<T> &r) {
   auto [b, _] = std::move(r.value());
@@ -22,7 +29,7 @@ TEST_CASE("Simple parses", "[parser]") {
     auto lx = std::make_shared<TranslationUnit>(LexString(func));
     auto c = ParseToplevel(lx);
     if (c == nullptr) {
-      std::cout << "Oh no! It's null!" << std::endl;
+      PRINT_ERROR("Oh no! It's null!" << std::endl);
     }
     THEN("It provides a parse tree") { REQUIRE(c != nullptr); }
     THEN("It is indeed what it should be") {
@@ -41,7 +48,9 @@ TEST_CASE("Simple parses", "[parser]") {
     THEN("The parameter shows up") {
       REQUIRE(c->children[0]->children.size() == 1);
     }
+#ifdef TEST_PRINTING
     c->print_tree(std::cout, 0);
+#endif
   }
   WHEN("A function with many parameters is parsed") {
     const std::string func =
@@ -52,7 +61,9 @@ TEST_CASE("Simple parses", "[parser]") {
     THEN("It has 9 parameter children") {
       REQUIRE(c->children[0]->children.size() == 9);
     }
+#ifdef TEST_PRINTING
     c->print_tree(std::cout, 0);
+#endif
   }
   WHEN("A function is parsed with a variable declaration") {
     const std::string func = "function variables()\n"
@@ -80,7 +91,9 @@ TEST_CASE("Assignment tests", "[parser]") {
       REQUIRE(tree->count_leaves() == 3);
     }
     tree->collapse();
+#ifdef TEST_PRINTING
     tree->print_tree(std::cout, 0);
+#endif
     THEN("it produces the right tree") {
       tree->explore([](ASTNodeBase *t) {
         if (t->is_leaf()) {
@@ -109,9 +122,13 @@ TEST_CASE("Expression tests", "[parser]") {
     auto lx = shared_lex(num);
     auto ex = ExpressionAST::parse(lx->begin());
     THEN("It parses") { REQUIRE(ex.has_value()); }
+#ifdef TEST_PRINTING
     // std::get<0>(ex.value())->print_tree(std::cerr, 0);
+#endif
     auto [e, s] = std::move(ex.value());
+#ifdef TEST_PRINTING
     e->print_tree(std::cerr, 0);
+#endif
     THEN("It has the expected sequence") {
       std::string correct[] = {"Expression", "BooleanExpr", "ComparisonExpr",
                                "AddSub",     "MultDiv",     "ExponentExpr",
@@ -152,7 +169,9 @@ TEST_CASE("Expression tests", "[parser]") {
     auto [e, _] = std::move(ex.value());
     auto pre_collapse = e->tree_size();
     e->collapse();
+#ifdef TEST_PRINTING
     e->print_tree(std::cout, 0);
+#endif
   }
 }
 TEST_CASE("If statement", "[parser]") {
@@ -164,7 +183,9 @@ TEST_CASE("If statement", "[parser]") {
     REQUIRE(p.has_value());
     auto [If, _] = std::move(p.value());
     If->collapse();
+#ifdef TEST_PRINTING
     If->print_tree(std::cout, 0);
+#endif
   }
   WHEN("An if statement is there") {
     const std::string s = "function hello()\n"
@@ -179,7 +200,9 @@ TEST_CASE("If statement", "[parser]") {
     auto p = ParseToplevel(lx);
     REQUIRE(p != nullptr);
     p->collapse();
+#ifdef TEST_PRINTING
     p->print_tree(std::cout, 0);
+#endif
   }
 }
 TEST_CASE("For Loop", "[parser]") {
@@ -217,7 +240,9 @@ TEST_CASE("For Loop", "[parser]") {
     auto lx = shared_lex(forFunc);
     auto parsed = ParseToplevel(lx);
     THEN("It is parsed") { REQUIRE(parsed != nullptr); }
+#ifdef TEST_PRINTING
     parsed->print_tree(std::cerr, 0);
+#endif
   }
 }
 TEST_CASE("Multiple assignment", "[parser]") {
@@ -228,7 +253,9 @@ TEST_CASE("Multiple assignment", "[parser]") {
     THEN("It is parsed") { REQUIRE(parsed.has_value()); }
     auto p = unwrap(parsed);
     p->collapse();
+#ifdef TEST_PRINTING
     p->print_tree(std::cout, 0);
+#endif
     THEN("The types and contents are correct") {
       std::string correct[4][2] = {{"Variable Name", "a"},
                                    {"Variable Name", "b"},
@@ -251,7 +278,9 @@ TEST_CASE("Multiple assignment", "[parser]") {
     auto parsed = AssignmentAST::parse(lx->begin());
     THEN("It is parsed") { REQUIRE(parsed.has_value()); }
     auto p = unwrap(parsed);
+#ifdef TEST_PRINTING
     p->print_tree(std::cout, 0);
+#endif
     p->collapse();
     THEN("It is correct") {
       const char *vn = "Variable Name";
@@ -275,7 +304,9 @@ TEST_CASE("Multiple assignment", "[parser]") {
     THEN("It does not parse") {
       auto parsed = AssignmentAST::parse(lx->begin());
       if (parsed.has_value()) {
+#ifdef TEST_PRINTING
         std::get<0>(parsed.value())->print_tree(std::cerr, 0);
+#endif
       }
       REQUIRE(!parsed.has_value());
     }
@@ -302,14 +333,18 @@ TEST_CASE("Return expressions", "[parser]") {
     auto lx = shared_lex(r);
     auto ret = ReturnAST::parse(lx->begin());
     THEN("It is parsed") { REQUIRE(ret.has_value()); }
+#ifdef TEST_PRINTING
     std::get<0>(ret.value())->print_tree(std::cout, 0);
+#endif
   }
   WHEN("It is tested independently without an expression") {
     const std::string r = "return";
     auto lx = shared_lex(r);
     auto ret = ReturnAST::parse(lx->begin());
     THEN("It is parsed") { REQUIRE(ret.has_value()); }
+#ifdef TEST_PRINTING
     std::get<0>(ret.value())->print_tree(std::cout, 0);
+#endif
   }
 
   WHEN("IT has no expression") {
@@ -329,7 +364,9 @@ TEST_CASE("ArrayAccess", "[parser]") {
   WHEN("An array access exists") {
     const std::string array = "a[5]";
     auto lx = shared_lex(array);
-    list_tokens(*lx);
+#ifdef TEST_PRINTING
+    list_tokens(lx);
+#endif
     auto parsed = ArrayAccessAST::parse(lx->begin());
     THEN("It is found") { REQUIRE(parsed.has_value()); }
     auto [array_acc, _] = std::move(parsed.value());

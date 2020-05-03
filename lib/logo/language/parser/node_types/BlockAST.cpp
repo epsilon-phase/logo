@@ -34,6 +34,5 @@ ParseResult<BlockAST> BlockAST::parse(TokenStreamIterator start) {
     }
     break;
   }
-  std::cerr << "Found " << TokenToString(start->type) << std::endl;
   return std::make_optional(std::make_tuple(std::move(result), start));
 }

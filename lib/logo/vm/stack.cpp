@@ -62,7 +62,7 @@ namespace logo {
       result.fp = a;
       return result;
     }
-    Number Number::FromInt(int64_t a) {
+    Number Number::fromInt(int64_t a) {
       Number result;
       if (!inIntRange(a)) {
         result.fp = a;
@@ -76,9 +76,12 @@ namespace logo {
       Number result;
       if (a.isInt()) {
         if (b.isInt()) {
-
-          result.setInt();
-          result.Integral.i = a.Integral.i + b.Integral.i;
+          int64_t res = a.Integral.i + b.Integral.i;
+          if (Number::inIntRange(res)) {
+            result.setInt();
+            result.Integral.i = a.Integral.i + b.Integral.i;
+          } else
+            result.fp = res;
         } else {
           result.fp = a.Integral.i + b.fp;
         }
@@ -238,7 +241,8 @@ namespace logo {
         }
         return r;
       } else if (t.type == TokenType::String) {
-        return std::string(t.content);
+        // Narrow it because the token includes the quotes
+        return std::string(&t.content[1], &t.content.back() - &t.content[1]);
       }
       return std::monostate();
     }
