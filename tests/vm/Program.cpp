@@ -1,5 +1,6 @@
 #include "../catch2.hpp"
 #include <iostream>
+#include <logo/errors/VMValueException.hpp>
 #include <logo/vm/gc.hpp>
 #include <logo/vm/program.hpp>
 #include <logo/vm/stack.hpp>
@@ -84,5 +85,26 @@ TEST_CASE("Program", "[vm]") {
         REQUIRE(p.string_heap.find(e.addr) == p.string_heap.end());
       }
     }
+    // TODO add testing for collecting constants(that is, it doesn't happen)
+  }
+}
+TEST_CASE("boxing exceptions", "[vm]") {
+  using namespace logo::vm;
+  Program p;
+  // Necessary because there must be program counter to keep the code quick
+  p.pc.push_back(0);
+  Number c = 1.5;
+  WHEN("It isn't an array or string") {
+    THEN("It throws an IAmASimpleNumber exception") {
+      REQUIRE_THROWS_AS(c.resolveArray(p), logo::error::IAmButASimpleNumber);
+    }
+  }
+  WHEN("It isn't an array") {
+    c.setString(5);
+    REQUIRE_THROWS_AS(c.resolveArray(p), logo::error::NotAnArray);
+  }
+  WHEN("It isn't a string") {
+    c.setArray(5);
+    REQUIRE_THROWS_AS(c.resolveString(p), logo::error::NotAString);
   }
 }

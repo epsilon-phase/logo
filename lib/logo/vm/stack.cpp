@@ -108,6 +108,19 @@ namespace logo {
           }
         }
       }
+      for (auto &i : constants) {
+        if (!i.isNumber()) {
+          if (i.isArray()) {
+            auto &a = i.resolveArray(p);
+            if (!a.marked)
+              a.Mark(p);
+          } else if (i.isString()) {
+            auto &s = i.resolveString(p);
+            if (!s.marked)
+              s.Mark(p);
+          }
+        }
+      }
       if (parent != nullptr) {
         parent->Mark(p);
       }
