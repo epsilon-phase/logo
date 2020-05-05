@@ -1,0 +1,1 @@
+target_sources(logo_test PRIVATE Number.cpp String.cpp Program.cpp)

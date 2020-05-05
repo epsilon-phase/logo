@@ -19,7 +19,7 @@ namespace logo {
       String,
       None,
     };
-    using GarbageMap = std::unordered_map<int64_t, uint64_t>;
+    struct Array;
     /**
      * NaN-boxed number. Maybe it works, maybe it's trash.
      **/
@@ -51,6 +51,8 @@ namespace logo {
       void setArray(unsigned int);
       void setString(unsigned int);
       void setNull();
+      Array &resolveArray(Program &);
+      String &resolveString(Program &);
       Number &operator-=(const Number &);
       Number &operator+=(const Number &);
       Number &operator/=(const Number &);
@@ -66,6 +68,9 @@ namespace logo {
     bool operator<=(Number, Number);
     bool operator==(Number a, Number b);
     struct Program;
+    /**
+     * Not really a stack, more a register file.
+     * */
     struct stack : public GarbageCollected {
       stack *parent = nullptr;
       std::array<Number, 256> registers;
@@ -73,7 +78,9 @@ namespace logo {
       virtual void Mark(Program &);
       virtual bool Sweep(Program &);
     };
-
+    /**
+     * An array object.
+     * */
     struct Array : public GarbageCollected {
       virtual ~Array() {}
       virtual void Mark(Program &);

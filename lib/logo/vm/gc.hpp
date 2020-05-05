@@ -1,5 +1,6 @@
 #pragma once
 #include <cstddef>
+#include <cstdint>
 namespace logo {
   namespace vm {
     struct Program;
@@ -18,9 +19,17 @@ namespace logo {
       bool marked = false;
     };
     struct String : public GarbageCollected {
-      virtual ~String() {}
-      char *data;
-      size_t length;
+      String(const String &);
+      String();
+      String(const char *c);
+      virtual ~String();
+      char *data = nullptr;
+      uint32_t length = 0, capacity = 0;
+      void append(const char *);
+      void append(const String &);
+      void narrow(uint32_t start, int32_t length = -1);
+      void resize(uint32_t size);
+      String narrowTo(uint32_t s, int32_t len = -1) const;
       virtual void Mark(Program &);
       //! Collect the garbage
       virtual bool Sweep(Program &);

@@ -1,8 +1,8 @@
 #include "./stack.hpp"
-#include "./program.hpp"
-
 #include "../detail/Epsilon.hpp"
+#include "../errors/VMValueException.hpp"
 #include "../language/lexer/tokens.hpp"
+#include "./program.hpp"
 #include <iostream>
 using namespace logo::vm;
 
@@ -27,12 +27,12 @@ namespace logo {
     }
     void Number::setArray(unsigned int addr) {
       exponent = 0b11111111111;
-      addr = addr;
+      this->addr = addr;
       type = ValueType::Array;
     }
     void Number::setString(unsigned int addr) {
       exponent = 0b11111111111;
-      addr = addr;
+      this->addr = addr;
       type = ValueType::String;
     }
     Number operator+(Number a, Number b) {
@@ -60,7 +60,7 @@ namespace logo {
       return *this;
     }
     Number &Number::operator+=(const Number &b) {
-      *this = *this / b;
+      *this = *this + b;
       return *this;
     }
     Number &Number::operator/=(const Number &b) {
@@ -70,6 +70,20 @@ namespace logo {
     Number &Number::operator*=(const Number &b) {
       *this = *this * b;
       return *this;
+    }
+    Array &Number::resolveArray(Program &p) {
+      if (isNumber())
+        throw(logo::error::IAmButASimpleNumber(p.getProgramCounter()));
+      else if (!isArray())
+        throw(logo::error::NotAnArray(p.getProgramCounter()));
+      return *p.array_heap[addr];
+    }
+    String &Number::resolveString(Program &p) {
+      if (isNumber())
+        throw logo::error::IAmButASimpleNumber(p.getProgramCounter());
+      if (!isString())
+        throw logo::error::NotAString(p.getProgramCounter());
+      return *p.string_heap[addr];
     }
     bool operator<(Number a, Number b) { return a.fp < b.fp; }
     bool operator>(Number a, Number b) { return a.fp > b.fp; }
@@ -84,11 +98,13 @@ namespace logo {
       for (auto &i : registers) {
         if (!i.isNumber() && !i.isNull()) {
           if (i.type == ValueType::String) {
-            if (!p.array_heap[i.addr].marked)
-              p.string_heap[i.addr].Mark(p);
+            auto &s = i.resolveString(p);
+            if (!s.marked)
+              s.Mark(p);
           } else if (i.type == ValueType::Array) {
-            if (!p.array_heap[i.addr].marked)
-              p.array_heap[i.addr].Mark(p);
+            auto &s = i.resolveArray(p);
+            if (!s.marked)
+              s.Mark(p);
           }
         }
       }
@@ -101,12 +117,14 @@ namespace logo {
       marked = true;
       for (auto &i : contents) {
         if (not(i.isNumber() || i.isNull())) {
-          if (i.type == ValueType::Array) {
-            if (!p.array_heap[i.addr].marked)
-              p.array_heap[i.addr].Mark(p);
-          } else if (i.type == ValueType::String) {
-            if (!p.string_heap[i.addr].marked)
-              p.string_heap[i.addr].Mark(p);
+          if (i.isArray()) {
+            auto &s = i.resolveArray(p);
+            if (!s.marked)
+              s.Mark(p);
+          } else if (i.isString()) {
+            auto &s = i.resolveString(p);
+            if (!s.marked)
+              s.Mark(p);
           }
         }
       }

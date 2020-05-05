@@ -18,7 +18,7 @@ namespace logo {
     }
   } // namespace vm
 } // namespace logo
-#include "./catch2.hpp"
+#include "../catch2.hpp"
 TEST_CASE("Number boxing", "[vm]") {
   using namespace logo::vm;
   WHEN("Numbers are set to strings") {
@@ -42,5 +42,20 @@ TEST_CASE("Number boxing", "[vm]") {
     THEN("IT is known to be a number") { REQUIRE(r.isNumber()); }
     THEN("IT is equal to 15") { REQUIRE(r == 15); }
     THEN("15+15 is still 30") { REQUIRE((r + r) == 30.0); }
+    THEN("15/15 is still 1") { REQUIRE(r / r == 1.0); }
+    THEN("15*15 is still 225") { REQUIRE(r * r == 225.0); }
+    THEN("15-15 is still 0") { REQUIRE(r - r == 0); }
+    THEN("In place modification has expected results") {
+      auto c = r;
+      c += 15;
+      REQUIRE(c == 30);
+      c -= 15;
+      REQUIRE(c == 15);
+      c *= 15;
+      REQUIRE(c == 225);
+      c /= 15;
+      REQUIRE(c == 15);
+      // yay
+    }
   }
 }
