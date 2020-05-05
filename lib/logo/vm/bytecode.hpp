@@ -57,11 +57,13 @@ namespace logo {
         /**
          * Format = @see Bytecode::normal
          *
-         * Call (register) (Number of arguments+1) (1)
-         * The specified Register determines the first register to use, which is
-         * the function that is called.
-         * The arguments to the function are loaded into the registers that
-         * follow it and used by the resulting call
+         * Call (register) (Number of arguments+1) (Number of variables
+         * assigned+1)
+         *
+         * The specified Register determines the first register to
+         * use, which is the function that is called. The arguments to the
+         * function are loaded into the registers that follow it and used by the
+         * resulting call
          *
          * Reading over the source code, it appears that the third
          * argument specifies how many values are expected(+1)

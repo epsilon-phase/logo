@@ -68,13 +68,14 @@ namespace logo {
     bool operator<=(Number, Number);
     bool operator==(Number a, Number b);
     struct Program;
+    struct Function;
     /**
      * Not really a stack, more a register file.
      * */
     struct stack : public GarbageCollected {
       stack *parent = nullptr;
+      Function *environment = nullptr;
       std::array<Number, 256> registers;
-      std::vector<Number> constants;
       virtual void Mark(Program &);
       virtual bool Sweep(Program &);
     };
