@@ -1,9 +1,12 @@
 #include "../catch2.hpp"
+#include <cstring>
 #include <iostream>
 #include <logo/detail/utility.hpp>
 #include <logo/vm/gc.hpp>
+using std::strcmp;
 TEST_CASE("Strings", "[vm]") {
   using namespace logo::vm;
+
   String c;
   logo::__detail::print_info<String>(std::cout, "String");
   WHEN("A const char* is appended to the string") {

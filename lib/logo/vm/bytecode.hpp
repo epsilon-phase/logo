@@ -4,6 +4,7 @@
 #include <functional>
 namespace logo {
   namespace vm {
+    struct ProgramState;
     std::function<ProgramState(ProgramState &)> opcodes[64];
     //! Containment namespace for bytecode names
     namespace bytecodes {

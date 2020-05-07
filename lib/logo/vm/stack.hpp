@@ -1,6 +1,7 @@
 #pragma once
 #include "../detail/Epsilon.hpp"
 #include "./gc.hpp"
+#include <endian.h>
 #include <memory>
 #include <optional>
 #include <string>
@@ -14,7 +15,7 @@ namespace logo {
     }
   } // namespace language
   namespace vm {
-    enum class ValueType {
+    enum class ValueType : unsigned int {
       Array,
       String,
       None,
@@ -31,7 +32,7 @@ namespace logo {
         double fp;
 
         struct {
-#ifdef __BIG_ENDIAN__
+#if defined(BIG_ENDIAN) || __BYTE_ORDER == __BIG_ENDIAN
           unsigned int sign : 1;
           unsigned int exponent : 11;
           ValueType type : 4;
@@ -57,6 +58,9 @@ namespace logo {
       Number &operator+=(const Number &);
       Number &operator/=(const Number &);
       Number &operator*=(const Number &);
+
+    private:
+      void setNan();
     };
     Number operator+(Number, Number);
     Number operator-(Number, Number);
@@ -76,6 +80,7 @@ namespace logo {
       stack *parent = nullptr;
       Function *environment = nullptr;
       std::array<Number, 256> registers;
+
       virtual void Mark(Program &);
       virtual bool Sweep(Program &);
     };

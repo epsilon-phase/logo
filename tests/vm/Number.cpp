@@ -2,9 +2,9 @@
 
 #include "logo/language/lexer/lexer.hpp"
 
+#include "logo/vm/stack.hpp"
 #include <cmath> //For nan()
 #include <iostream>
-#include <logo/vm/stack.hpp>
 namespace logo {
   namespace vm {
     std::ostream &operator<<(std::ostream &o, const logo::vm::Number &r) {

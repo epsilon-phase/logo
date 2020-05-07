@@ -5,10 +5,10 @@ namespace logo {
   namespace vm {
     String::String(const String &other) {
       resize(other.length);
-      strncpy(data, other.data, other.length);
+      std::strncpy(data, other.data, other.length);
     }
     String::String(const char *c) {
-      auto len = strlen(c);
+      auto len = std::strlen(c);
       resize(len);
       strcpy(data, c);
       length = len;

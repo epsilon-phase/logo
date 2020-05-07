@@ -2,16 +2,18 @@
 #include "../detail/Epsilon.hpp"
 #include "../errors/VMValueException.hpp"
 #include "../language/lexer/tokens.hpp"
+#include "./function.hpp"
 #include "./program.hpp"
 #include <iostream>
 using namespace logo::vm;
 
 namespace logo {
   namespace vm {
-    Number::Number() {}
 
+    Number::Number() {}
+    void Number::setNan() { exponent = 0b11111111111; }
     void Number::setNull() {
-      this->exponent = 0b11111111111;
+      setNan();
       this->type = ValueType::None;
       this->addr = 0;
     }
@@ -26,12 +28,12 @@ namespace logo {
       return !isNumber() && type == ValueType::None;
     }
     void Number::setArray(unsigned int addr) {
-      exponent = 0b11111111111;
+      setNan();
       this->addr = addr;
       type = ValueType::Array;
     }
     void Number::setString(unsigned int addr) {
-      exponent = 0b11111111111;
+      setNan();
       this->addr = addr;
       type = ValueType::String;
     }
@@ -108,19 +110,21 @@ namespace logo {
           }
         }
       }
-      for (auto &i : constants) {
-        if (!i.isNumber()) {
-          if (i.isArray()) {
-            auto &a = i.resolveArray(p);
-            if (!a.marked)
-              a.Mark(p);
-          } else if (i.isString()) {
-            auto &s = i.resolveString(p);
-            if (!s.marked)
-              s.Mark(p);
+      // TODO this doesn't make sense to put here
+      if (environment)
+        for (auto &i : environment->constants) {
+          if (!i.isNumber()) {
+            if (i.isArray()) {
+              auto &a = i.resolveArray(p);
+              if (!a.marked)
+                a.Mark(p);
+            } else if (i.isString()) {
+              auto &s = i.resolveString(p);
+              if (!s.marked)
+                s.Mark(p);
+            }
           }
         }
-      }
       if (parent != nullptr) {
         parent->Mark(p);
       }
