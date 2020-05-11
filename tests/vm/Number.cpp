@@ -1,19 +1,20 @@
 
 
-#include "logo/language/lexer/lexer.hpp"
+#include <logo/language/lexer/lexer.hpp>
 
-#include "logo/vm/stack.hpp"
 #include <cmath> //For nan()
 #include <iostream>
+#include <logo/vm/stack.hpp>
 namespace logo {
   namespace vm {
     std::ostream &operator<<(std::ostream &o, const logo::vm::Number &r) {
       if (r.isNumber())
         o << r.fp;
       else if (r.isArray())
-        o << "Array(" << r.addr << ")";
+        o << "Array(";
       else if (r.isString())
-        o << "String(" << r.addr << ")";
+        o << "String(";
+      o << std::hex << r.addr << ")";
       return o;
     }
   } // namespace vm

@@ -1,6 +1,7 @@
 #include "../catch2.hpp"
 #include <iostream>
 #include <logo/errors/VMValueException.hpp>
+#include <logo/vm/function.hpp>
 #include <logo/vm/gc.hpp>
 #include <logo/vm/program.hpp>
 #include <logo/vm/stack.hpp>
@@ -107,4 +108,45 @@ TEST_CASE("boxing exceptions", "[vm]") {
     c.setArray(5);
     REQUIRE_THROWS_AS(c.resolveString(p), logo::error::NotAString);
   }
+}
+logo::vm::Bytecode getNormal(logo::vm::bytecodes::bytecode_ids op,
+                             uint32_t dest, uint32_t op1, uint32_t op2) {
+  logo::vm::Bytecode c;
+  c.normal.opcode = op;
+  c.normal.dest = dest;
+  c.normal.op1 = op1;
+  c.normal.op2 = op2;
+  return c;
+}
+TEST_CASE("Simple bytecode interpretation", "[vm]") {
+  using namespace logo::vm;
+  Program p;
+  auto s = new stack();
+  auto f = new Function();
+  const unsigned int const_tag = 1 << 8;
+  f->constants.push_back(Number(1));
+  f->constants.push_back(Number(3));
+  f->bytecode.push_back(
+      getNormal(bytecodes::Add, 1, (1 << 8) | 0, (1 << 8) | 0));
+  f->bytecode.push_back(getNormal(bytecodes::Sub, 0, (1 << 8) | 1, 1));
+  f->bytecode.push_back(getNormal(bytecodes::Mult, 0, 1, 1));
+  f->bytecode.push_back(getNormal(bytecodes::Pow, 0, const_tag | 1, 1));
+  f->bytecode.push_back(getNormal(bytecodes::Div, 0, 0, const_tag | 1));
+  s->environment = f;
+  p.current = s;
+  p.pc.push_back(0);
+  WHEN("a few things are opened") {
+    p.dispatchInstruction();
+    THEN("It adds when adding") { REQUIRE(s->registers[1] == 2); }
+    p.dispatchInstruction();
+    THEN("It subtracts when subtracting") { REQUIRE(s->registers[0] == 1); }
+    p.dispatchInstruction();
+    THEN("It multiplies") { REQUIRE(s->registers[0] == 4); }
+    p.dispatchInstruction();
+    THEN("It exponentiates") { REQUIRE(s->registers[0] == 9); }
+    p.dispatchInstruction();
+    THEN("It divides") { REQUIRE(s->registers[0] == 3); }
+  }
+  delete s;
+  delete f;
 }

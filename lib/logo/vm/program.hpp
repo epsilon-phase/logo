@@ -5,6 +5,7 @@
 #include <unordered_map>
 namespace logo {
   namespace vm {
+    struct Bytecode;
     struct Array;
     struct Program {
       stack *current;
@@ -18,6 +19,11 @@ namespace logo {
       Number acquire_string();
       Number acquire_array();
       size_t getProgramCounter() const;
+      void setProgramCounter(size_t pc);
+      void popStack();
+      void pushStack(Function *);
+      Bytecode getCurrentInstruction(unsigned int levelsup = 0) const;
+      void dispatchInstruction();
 
     private:
       int32_t acquire_next_array_id();

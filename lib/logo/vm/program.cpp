@@ -1,4 +1,5 @@
 #include "./program.hpp"
+#include "./function.hpp"
 #include "./gc.hpp"
 #include "./stack.hpp"
 #include <iostream>
@@ -65,6 +66,23 @@ namespace logo {
       while (string_heap.find(last_string_id) != string_heap.end())
         last_string_id++;
       return last_string_id;
+    }
+    void Program::setProgramCounter(size_t pc) { this->pc.back() = pc; }
+    Bytecode Program::getCurrentInstruction(unsigned int levelsup) const {
+      auto idx = pc.size() - 1;
+      auto st = current;
+      while (levelsup > 0 && idx > 0) {
+        st = st->parent;
+        idx--;
+      }
+      auto p = pc[idx];
+      return st->environment->bytecode[p];
+    }
+    void Program::popStack() {
+      stack *tmp = current;
+      current = current->parent;
+      pc.pop_back();
+      delete tmp;
     }
   } // namespace vm
 } // namespace logo

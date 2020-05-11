@@ -23,5 +23,9 @@ namespace logo {
       IAmButASimpleNumber(size_t pc) : VMValueException(pc) {}
       const char *what() const noexcept { return "I am but a simple number"; }
     };
+    struct NotANumber : public VMValueException {
+      NotANumber(size_t pc) : VMValueException(pc) {}
+      const char *what() const noexcept { return "Not a number! >:("; }
+    };
   } // namespace error
 } // namespace logo

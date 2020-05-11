@@ -4,8 +4,7 @@
 #include <functional>
 namespace logo {
   namespace vm {
-    struct ProgramState;
-    std::function<ProgramState(ProgramState &)> opcodes[64];
+    struct Program;
     //! Containment namespace for bytecode names
     namespace bytecodes {
       enum bytecode_ids {
@@ -78,7 +77,7 @@ namespace logo {
          * local a,b,c
          * a,b,c=ab(1,2,3)
          * ```
-         * becomes something like:
+         * becomes something like this:
          * ```
          * GET_GLOBAL R3 K0
          * LOADK R4 K1
@@ -86,6 +85,10 @@ namespace logo {
          * LOADK R6 K3
          * CALL R3 4 4 ;R3,R4,R5=R3(R4,R5,R6)
          * ```
+         *
+         * In this language, a somewhat significant difference is that an opcode
+         * set to 0 means that it doesn't either pass arguments or assign locals
+         * (depending on the value of op1 and op2)
          * */
         Call,
         //! The return instruction
@@ -107,6 +110,22 @@ namespace logo {
          * second argument is just a register that is copied into the first
          * */
         Move,
+        /**
+         * Set an element of the array
+         * `dest[op1]=op2`
+         * */
+        SetArray,
+        /**
+         * Get an element of an array
+         *
+         * `dest=op1[op2]`
+         * */
+        GetArray,
+        /**
+         * Resolve a function
+         * dest=address(valueOf(Constant(addr)))
+         * */
+        ResolveFunction
       };
     }
     //! Bytecode that hasn't been through register reassignment
@@ -140,10 +159,10 @@ namespace logo {
           unsigned int opcode : 6;
           //! The destination field, same for both instructions
           unsigned int dest : 8;
-          //! The first operend, if `op1&(1<<9)` then it is a constant rather
+          //! The first operend, if `op1&(1<<8)` then it is a constant rather
           //! than a register
           unsigned int op1 : 9;
-          //! The second operend, if `op1&(1<<9)` then it is a constant rather
+          //! The second operend, if `op1&(1<<8)` then it is a constant rather
           //! than a register
           unsigned int op2 : 9;
         } normal;
@@ -164,5 +183,17 @@ namespace logo {
       //! Produce a human readable representation of the instruction
       std::string to_string() const;
     };
+
+    /**
+     * @param The number field
+     * @returns If the field is a constant
+     * */
+    bool isConstant(uint32_t);
+    /**
+     * Decode a operand field, discarding the constant tag bit
+     * @param i The number to decode
+     * @returns The decoded constant index
+     * */
+    uint32_t getConstant(uint32_t);
   } // namespace vm
 } // namespace logo
