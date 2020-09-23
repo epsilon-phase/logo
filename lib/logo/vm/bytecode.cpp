@@ -8,10 +8,7 @@ namespace logo::vm {
   bool isConstant(uint32_t i) { return i & (1 << 8); }
   uint32_t getConstant(uint32_t i) { return i & 0xFF; }
   namespace bytecodes {
-    // Convenience method for grabbing numbers for
-    // arithmetic instructions.
-    inline std::tuple<Number, Number> getNumbers(Program &p, stack &s,
-                                                 Bytecode i) {
+    inline std::tuple<Number, Number> getValues(stack &s, Bytecode i) {
       Number a, b;
       if (isConstant(i.normal.op1)) {
         a = s.environment->constants[getConstant(i.normal.op1)];
@@ -23,6 +20,13 @@ namespace logo::vm {
       } else {
         b = s.registers[i.normal.op2];
       }
+      return std::make_tuple(a, b);
+    }
+    // Convenience method for grabbing numbers for
+    // arithmetic instructions.
+    inline std::tuple<Number, Number> getNumbers(Program &p, stack &s,
+                                                 Bytecode i) {
+      auto [a, b] = getValues(s, i);
       if (!a.isNumber() || !b.isNumber())
         throw logo::error::NotANumber(p.getProgramCounter());
       return std::make_tuple(a, b);
@@ -71,7 +75,20 @@ namespace logo::vm {
       p.popStack();
       return p.getProgramCounter() + 1;
     }
+    uint32_t jump(Program &p, uint32_t pc, stack &s, Bytecode i) {
+      return i.largeop.addr;
+    }
     uint32_t call(Program &p, uint32_t pc, stack &s, Bytecode i) { return 0; }
+    bool sameType(Number a, Number b) {
+      if (a.isNumber())
+        return b.isNumber();
+      return a.type == b.type;
+    }
+    uint32_t less_than(Program &p, uint32_t pc, stack &s, Bytecode i) {
+      pc += 1;
+      auto [a, b] = getNumbers(p, s, i);
+      return a.fp < b.fp;
+    }
   } // namespace bytecodes
   void Program::dispatchInstruction() {
     using namespace bytecodes;
@@ -97,6 +114,9 @@ namespace logo::vm {
       break;
     case Return:
       pc = ReturnFrom(p, pc, s, i);
+      break;
+    case Jump:
+      pc = jump(p, pc, s, i);
       break;
     }
     p.setProgramCounter(pc);

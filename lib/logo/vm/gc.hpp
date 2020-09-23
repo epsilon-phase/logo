@@ -34,5 +34,10 @@ namespace logo {
       //! Collect the garbage
       virtual bool Sweep(Program &);
     };
+    bool operator<(const String &, const String &);
+    bool operator==(const String &, const String &);
+    bool operator>(const String &, const String &);
+    bool operator>=(const String &, const String &);
+    bool operator<=(const String &, const String &);
   } // namespace vm
 } // namespace logo

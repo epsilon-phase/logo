@@ -3,6 +3,7 @@
 #include <cstring>
 namespace logo {
   namespace vm {
+    using std::strcmp;
     String::String(const String &other) {
       resize(other.length);
       std::strncpy(data, other.data, other.length);
@@ -83,6 +84,26 @@ namespace logo {
       c.resize(len);
       strncpy(c.data, data + start, len + 1);
       return c;
+    }
+    uint32_t min_size(const String &a, const String &b) {
+      return a.length > b.length ? b.length : a.length;
+    }
+    bool operator<(const String &a, const String &b) {
+      return strcmp(a.data, b.data) < 0;
+    }
+    bool operator==(const String &a, const String &b) {
+      return strcmp(a.data, b.data) == 0;
+    }
+    bool operator>(const String &a, const String &b) {
+      return strcmp(a.data, b.data) > 0;
+    }
+    bool operator>=(const String &a, const String &b) {
+      auto i = strcmp(a.data, b.data);
+      return i == 0 || i > 0;
+    }
+    bool operator<=(const String &a, const String &b) {
+      auto i = strcmp(a.data, b.data);
+      return i == 0 || i < 0;
     }
   } // namespace vm
 } // namespace logo

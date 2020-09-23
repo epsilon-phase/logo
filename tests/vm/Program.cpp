@@ -1,10 +1,20 @@
+#include "./util.hpp"
+
 #include "../catch2.hpp"
+
 #include <iostream>
 #include <logo/errors/VMValueException.hpp>
 #include <logo/vm/function.hpp>
 #include <logo/vm/gc.hpp>
 #include <logo/vm/program.hpp>
 #include <logo/vm/stack.hpp>
+namespace Catch {
+  template <> struct StringMaker<logo::vm::String> {
+    static std::string convert(logo::vm::String const &value) {
+      return std::string(value.data);
+    }
+  };
+} // namespace Catch
 TEST_CASE("Program", "[vm]") {
   using namespace logo::vm;
   Program p;
