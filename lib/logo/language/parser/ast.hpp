@@ -114,6 +114,9 @@ namespace logo {
         virtual bool collapsible() const { return true; }
         static ParseResult<AtomAST> parse(TokenStreamIterator start);
       };
+      /**
+       * Base class for unary operators
+       */
       struct UnaryOpAST : public ASTNodeBase {
         virtual ~UnaryOpAST() {}
         virtual const char *what() const { return "Unaryop(Override me plox"; }
