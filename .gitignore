@@ -8,3 +8,10 @@ lib/logo/language/lexer/lexer2.cpp
 # kdevelop
 .kdev4
 logo.kdev4
+
+# vscode
+.vscode
+
+# syncthing
+
+*sync-conflict*
