@@ -55,9 +55,9 @@ namespace logo {
         //! Print the tree to the given stream.
         /**
          * @param o The output stream
-         * @param depth The depth
+         * @param depth The depth, entirely to permit indentation in the output
          * */
-        virtual void print_tree(std::ostream &, int depth) const;
+        virtual void print_tree(std::ostream &, int depth = 0) const;
         /**
          * Produce a graphviz file representing the syntax tree and print to the
          * stream

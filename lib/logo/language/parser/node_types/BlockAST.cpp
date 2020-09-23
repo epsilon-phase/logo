@@ -4,7 +4,7 @@
 ParseResult<BlockAST> BlockAST::parse(TokenStreamIterator start) {
   std::unique_ptr<BlockAST> result = std::make_unique<BlockAST>();
   while (true) {
-    if (start->type == Else || start->type == EndIf)
+    if (start->type == Else || start->type == EndIf || start->type == EndFunc)
       break;
     std::unique_ptr<ASTNodeBase> current;
     if (start->type == If) {
@@ -22,7 +22,6 @@ ParseResult<BlockAST> BlockAST::parse(TokenStreamIterator start) {
       result->add_child(std::move(F));
       start = s;
     } else {
-
       auto r = StatementAST::parse(start);
       if (r.has_value()) {
         auto &[a, s] = r.value();

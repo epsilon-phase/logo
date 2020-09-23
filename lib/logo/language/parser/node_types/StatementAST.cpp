@@ -28,7 +28,7 @@ ParseResult<StatementAST> StatementAST::parse(TokenStreamIterator start) {
         result->add_child(std::move(c));
         start = s;
       }
-    } else if ((start + 1)->type == Equal || (start + 2)->type == Equal) {
+    } else {
       auto assign = AssignmentAST::parse(start);
       if (!assign.has_value())
         FAIL;
@@ -36,8 +36,6 @@ ParseResult<StatementAST> StatementAST::parse(TokenStreamIterator start) {
       result->add_child(std::move(ass));
       start = n;
     }
-  } else {
-    FAIL;
   }
   if (start->type != Semicolon) {
     std::cerr << "Expected semicolon, got " << TokenToString(start->type)

@@ -381,4 +381,12 @@ TEST_CASE("ArrayAccess", "[parser]") {
       REQUIRE(array_acc->children.size() == 3);
     }
   }
+  WHEN("An assignment is made") {
+    const std::string array_assign = "a[1]=0";
+    auto lx = shared_lex(array_assign);
+    auto parsed = AssignmentAST::parse(lx->begin());
+    THEN("IT is found") { REQUIRE(parsed.has_value()); }
+    auto [array_a, _] = std::move(parsed.value());
+    array_a->print_tree(std::cout, 0);
+  }
 }
